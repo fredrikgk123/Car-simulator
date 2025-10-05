@@ -3,6 +3,7 @@
 
 Vehicle::Vehicle(float x, float y, float z)
     : position_({x, y, z}),
+      initialPosition_({x, y, z}),  // Store initial position for reset
       rotation_(0.0f),
       velocity_(0.0f),
       acceleration_(0.0f),
@@ -85,6 +86,14 @@ void Vehicle::update(float deltaTime) {
     position_[2] += dz;
 
     // Reset acceleration (input must be applied each frame)
+    acceleration_ = 0.0f;
+}
+
+void Vehicle::reset() {
+    // Reset to initial state
+    position_ = initialPosition_;
+    rotation_ = 0.0f;
+    velocity_ = 0.0f;
     acceleration_ = 0.0f;
 }
 

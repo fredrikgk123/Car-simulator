@@ -11,6 +11,7 @@ public:
     void accelerateBackward();
     void turn(float amount);
     void update(float deltaTime);
+    void reset(); // Reset vehicle to initial position and state
 
     // Getters
     std::vector<float> getPosition() const;
@@ -25,7 +26,8 @@ private:
     // Helper function to calculate turn rate based on speed
     float calculateTurnRate() const;
 
-    std::vector<float> position_;      // x, y, z
+    std::vector<float> position_;       // x, y, z
+    std::vector<float> initialPosition_; // Store initial position for reset
     float rotation_;                   // in radians
     float velocity_;                   // current speed
     float acceleration_;               // current acceleration

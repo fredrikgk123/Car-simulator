@@ -115,3 +115,34 @@ void SceneManager::resize(const WindowSize& size) {
     camera_->updateProjectionMatrix();
     renderer_->setSize(size);
 }
+
+void SceneManager::setupMinimapCamera(float aspectRatio) {
+    // Orthographic camera for top-down view
+    // View area: viewSize
+    float viewSize = 15.0f;
+    minimapCamera_ = std::make_shared<OrthographicCamera>(
+        -viewSize * aspectRatio, viewSize * aspectRatio,  // left, right
+        viewSize, -viewSize,                               // top, bottom
+        0.1f, 1000.0f                                      // near, far
+    );
+
+    // Position camera high above the scene looking straight down
+    minimapCamera_->position.set(0, 50, 0);  // 50 units high for bird's eye view
+    minimapCamera_->lookAt(Vector3(0, 0, 0));
+}
+
+void SceneManager::updateMinimapCamera(float targetX, float targetZ) {
+    // Keep minimap camera centered on vehicle
+    minimapCamera_->position.set(targetX, 50, targetZ);
+    minimapCamera_->lookAt(Vector3(targetX, 0, targetZ));
+}
+
+void SceneManager::renderMinimap() {
+    renderer_->render(*scene_, *minimapCamera_);
+}
+
+threepp::PerspectiveCamera& SceneManager::getMinimapCamera() {
+    // Note: This returns the main camera type for interface compatibility
+    // The actual minimap uses the orthographic camera
+    return *camera_;
+}

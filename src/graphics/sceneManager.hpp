@@ -17,18 +17,25 @@ public:
     void setupGround();
     void setupCamera(float aspectRatio);
     void setupRenderer(const threepp::WindowSize& size);
+    void setupMinimapCamera(float aspectRatio);  // Setup overhead minimap camera
 
     // Camera control
     void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation);
+    void updateMinimapCamera(float targetX, float targetZ);  // Update minimap to follow vehicle
 
     // Rendering
     void render();
+    void renderMinimap();  // Render minimap view
     void resize(const threepp::WindowSize& size);
+
+    // Getters
+    threepp::PerspectiveCamera& getMinimapCamera();
 
 private:
     std::unique_ptr<threepp::GLRenderer> renderer_;
     std::shared_ptr<threepp::Scene> scene_;
     std::shared_ptr<threepp::PerspectiveCamera> camera_;
+    std::shared_ptr<threepp::OrthographicCamera> minimapCamera_;  // Top-down camera for minimap
     std::shared_ptr<threepp::Mesh> groundMesh_;
 
     // Camera follow parameters

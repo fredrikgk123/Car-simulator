@@ -26,6 +26,10 @@ void InputHandler::onKeyPressed(KeyEvent evt) {
         case Key::D:
             rightPressed_ = true;
             break;
+        case Key::R:
+            // Reset vehicle to initial position and state
+            vehicle_.reset();
+            break;
         default:
             break;
     }
