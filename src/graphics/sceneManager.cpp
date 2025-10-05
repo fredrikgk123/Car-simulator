@@ -39,6 +39,15 @@ void SceneManager::setupLighting() {
     auto directionalLight = DirectionalLight::create(0xffffff, 0.8f);
     directionalLight->position.set(5, 10, 7);
     directionalLight->castShadow = true;
+
+    // Configure shadow camera to match ground plane size (50x50)
+    auto shadowCamera = directionalLight->shadow->camera->as<OrthographicCamera>();
+    shadowCamera->left = -25;
+    shadowCamera->right = 25;
+    shadowCamera->top = 25;
+    shadowCamera->bottom = -25;
+    shadowCamera->updateProjectionMatrix();
+
     scene_->add(directionalLight);
 }
 
@@ -51,12 +60,22 @@ void SceneManager::setupGround() {
     groundMesh_->rotation.x = -math::PI / 2;
     groundMesh_->receiveShadow = true;
     scene_->add(groundMesh_);
+
+    // Add grid helper
+    auto grid = GridHelper::create(50, 50);
+    grid->position.y = 0.01f;  // Slightly above ground to avoid z-fighting
+    scene_->add(grid);
 }
 
 void SceneManager::setupCamera(float aspectRatio) {
     camera_ = std::make_shared<PerspectiveCamera>(75, aspectRatio, 0.1f, 1000.0f);
     camera_->position.set(currentCameraX_, currentCameraY_, currentCameraZ_);
     camera_->lookAt(Vector3(currentLookAtX_, currentLookAtY_, currentLookAtZ_));
+}
+
+void SceneManager::setupRenderer(const WindowSize& size) {
+    renderer_->setSize(size);
+    renderer_->setClearColor(Color::aliceblue);
 }
 
 void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation) {

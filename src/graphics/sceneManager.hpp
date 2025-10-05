@@ -16,6 +16,7 @@ class SceneManager {
     void setupLighting();
     void setupGround();
     void setupCamera(float aspectRatio);
+    void setupRenderer(const threepp::WindowSize& size);
 
     // Camera control
     void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation);
