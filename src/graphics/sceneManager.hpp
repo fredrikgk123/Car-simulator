@@ -4,7 +4,7 @@
 #include <memory>
 
 class SceneManager {
-  public:
+public:
     SceneManager();
 
     // Scene access
@@ -25,7 +25,7 @@ class SceneManager {
     void render();
     void resize(const threepp::WindowSize& size);
 
-  private:
+private:
     std::unique_ptr<threepp::GLRenderer> renderer_;
     std::shared_ptr<threepp::Scene> scene_;
     std::shared_ptr<threepp::PerspectiveCamera> camera_;
@@ -34,7 +34,7 @@ class SceneManager {
     // Camera follow parameters
     float cameraDistance_;
     float cameraHeight_;
-    float cameraLerpSpeed_;  // Smoothing factor for camera movement
+    float cameraLerpSpeed_;        // Smoothing factor for camera movement
 
     // Current camera target for smooth interpolation
     float currentCameraX_;
