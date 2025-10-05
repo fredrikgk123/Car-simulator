@@ -1,49 +1,46 @@
-### macOS / Linux
-```bash
-mkdir build
-cd build
-cmake ..
-make
-./bilsim
-```
+# Build directories
+build/
+cmake-build-*/
+out/
 
-### Windows (Visual Studio)
-```bash
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-.\Release\bilsim.exe
-```
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-## Controls
-- **W / UP Arrow** - Accelerate forward
-- **S / DOWN Arrow** - Accelerate backward
-- **A / LEFT Arrow** - Turn left
-- **D / RIGHT Arrow** - Turn right
+# Compiled files
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.dylib
+*.so
+*.dll
+*.a
 
-## Adding Engine Sound
-Place an engine sound file (WAV, MP3, or OGG) at:
-```
-assets/sounds/engine.wav
-```
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+!src/**/CMakeLists.txt
 
-If no sound file is found, the simulator will run without audio.
+# Downloaded dependencies (will be re-downloaded by CMake)
+_deps/
 
-## Project Structure
-```
-src/
-  audio/       - Sound management (irrKlang)
-  core/        - Vehicle physics (backend)
-  graphics/    - 3D rendering (frontend)
-  input/       - Keyboard handling
-  ui/          - User interface
-```
+# Generated files
+*.autosave
+*.user
 
-## Dependencies
-- **threepp** - 3D graphics library (auto-downloaded)
-- **irrKlang** - Audio library (auto-downloaded)
+# OS specific
+.DS_Store
+Thumbs.db
 
-## License
-Educational project for school assignment.
+# Testing
+Testing/
 
