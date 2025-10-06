@@ -12,22 +12,22 @@ using namespace threepp;
 
 int main() {
     // UI Constants
-    int minimapSize = 150;           // Minimap size in pixels
-    int minimapPadding = 10;         // Padding from screen corner
+    int minimapSize = 150; // Minimap size in pixels
+    int minimapPadding = 10; // Padding from screen corner
 
     Canvas canvas("Bilsimulator");
 
     // Initialize scene
     SceneManager sceneManager;
     sceneManager.setupCamera(canvas.aspect());
-    sceneManager.setupMinimapCamera(1.0f);  // 1.0 aspect ratio - square minimap
+    sceneManager.setupMinimapCamera(1.0f); // 1.0 aspect ratio - square minimap
     sceneManager.setupRenderer(canvas.size());
     sceneManager.setupLighting();
     sceneManager.setupGround();
 
     // Create vehicle and renderer
     Vehicle vehicle(0.0f, 0.0f, 0.0f);
-    VehicleRenderer vehicleRenderer(sceneManager, vehicle);
+    VehicleRenderer vehicleRenderer(sceneManager.getScene(), vehicle);
 
     // Setup input handling
     std::unique_ptr<InputHandler> inputHandler = std::make_unique<InputHandler>(vehicle);
@@ -45,7 +45,7 @@ int main() {
     UIManager uiManager(sceneManager.getRenderer());
 
     // Handle window resize
-    canvas.onWindowResize([&](WindowSize size) {
+    canvas.onWindowResize([&](const WindowSize& size) {
         sceneManager.resize(size);
     });
 
@@ -70,8 +70,8 @@ int main() {
             audioManager.update(vehicle);
         }
 
-        GLRenderer& renderer = sceneManager.getRenderer();
-        WindowSize size = canvas.size();
+        GLRenderer &renderer = sceneManager.getRenderer();
+        const WindowSize& size = canvas.size();
 
         // Render main view
         renderer.setViewport(0, 0, size.width(), size.height());

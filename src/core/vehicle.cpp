@@ -1,24 +1,31 @@
 #include "vehicle.hpp"
 #include <cmath>
 
-// Define static constants
-const float Vehicle::MAX_SPEED = 25.0f;                  // 25 units/sec - balanced for responsive but controllable gameplay
-const float Vehicle::MAX_REVERSE_SPEED = 12.5f;          // Half of forward - vehicles reverse slower
-const float Vehicle::TURN_SPEED = 2.0f;                  // 2 radians/sec (~115°/sec) - arcade-style handling
-const float Vehicle::FORWARD_ACCELERATION = 12.0f;       // 12 units/sec² - reaches max speed in ~2 seconds
-const float Vehicle::BACKWARD_ACCELERATION = -6.0f;      // Half of forward - vehicles reverse slower than they accelerate
-const float Vehicle::FRICTION_COEFFICIENT = 0.994f;      // 0.994^60 ≈ 0.74 after 1 second at 60fps - natural deceleration
-const float Vehicle::MIN_TURN_SPEED = 0.1f;              // 0.1 units/sec minimum - prevents spinning in place (realistic)
-const float Vehicle::VEHICLE_WIDTH = 1.0f;
-const float Vehicle::VEHICLE_HEIGHT = 0.5f;
-const float Vehicle::VEHICLE_LENGTH = 2.0f;
+// Anonymous namespace - these constants are LOCAL to this file only (NOT global!)
+namespace {
+    // Physics constants
+    const float MAX_SPEED = 25.0f;                  // 25 units/sec - balanced for responsive but controllable gameplay
+    const float MAX_REVERSE_SPEED = 12.5f;          // Half of forward - vehicles reverse slower
+    const float TURN_SPEED = 2.0f;                  // 2 radians/sec (~115°/sec) - arcade-style handling
+    const float FORWARD_ACCELERATION = 12.0f;       // 12 units/sec² - reaches max speed in ~2 seconds
+    const float BACKWARD_ACCELERATION = -6.0f;      // Half of forward - vehicles reverse slower than they accelerate
+    const float FRICTION_COEFFICIENT = 0.994f;      // 0.994^60 ≈ 0.74 after 1 second at 60fps - natural deceleration
+    const float MIN_TURN_SPEED = 0.1f;              // 0.1 units/sec minimum - prevents spinning in place (realistic)
+
+    // Vehicle dimensions
+    const float VEHICLE_WIDTH = 1.0f;
+    const float VEHICLE_HEIGHT = 0.5f;
+    const float VEHICLE_LENGTH = 2.0f;
+}
 
 Vehicle::Vehicle(float x, float y, float z)
-    : position_({x, y, z}),
-      initialPosition_({x, y, z}),
-      rotation_(0.0f),
+    : GameObject(x, y, z),
       velocity_(0.0f),
       acceleration_(0.0f) {
+    // Set vehicle-specific size
+    size_[0] = VEHICLE_WIDTH;
+    size_[1] = VEHICLE_HEIGHT;
+    size_[2] = VEHICLE_LENGTH;
 }
 
 void Vehicle::accelerateForward() {
@@ -86,25 +93,15 @@ void Vehicle::update(float deltaTime) {
 }
 
 void Vehicle::reset() {
-    position_ = initialPosition_;
-    rotation_ = 0.0f;
+    GameObject::reset();
     velocity_ = 0.0f;
     acceleration_ = 0.0f;
 }
 
-const std::array<float, 3>& Vehicle::getPosition() const {
-    return position_;
-}
-
-float Vehicle::getRotation() const {
-    return rotation_;
-}
-
-const std::array<float, 3>& Vehicle::getSize() const {
-    static const std::array<float, 3> size = {VEHICLE_WIDTH, VEHICLE_HEIGHT, VEHICLE_LENGTH};
-    return size;
-}
-
 float Vehicle::getVelocity() const {
     return velocity_;
+}
+
+float Vehicle::getMaxSpeed() const {
+    return MAX_SPEED;
 }

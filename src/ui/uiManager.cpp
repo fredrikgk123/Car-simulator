@@ -5,20 +5,23 @@
 
 using namespace threepp;
 
-// Seven-segment display patterns for digits 0-9
-// Segments: top, top-right, bottom-right, bottom, bottom-left, top-left, middle
-const std::array<std::array<bool, 7>, 10> SEGMENT_PATTERNS = {{
-    {true, true, true, true, true, true, false},      // 0
-    {false, true, true, false, false, false, false},  // 1
-    {true, true, false, true, true, false, true},     // 2
-    {true, true, true, true, false, false, true},     // 3
-    {false, true, true, false, false, true, true},    // 4
-    {true, false, true, true, false, true, true},     // 5
-    {true, false, true, true, true, true, true},      // 6
-    {true, true, true, false, false, false, false},   // 7
-    {true, true, true, true, true, true, true},       // 8
-    {true, true, true, true, false, true, true}       // 9
-}};
+// Anonymous namespace - these constants are LOCAL to this file only (NOT global!)
+namespace {
+    // Seven-segment display patterns for digits 0-9
+    // Segments: top, top-right, bottom-right, bottom, bottom-left, top-left, middle
+    const std::array<std::array<bool, 7>, 10> SEGMENT_PATTERNS = {{
+        {true, true, true, true, true, true, false},      // 0
+        {false, true, true, false, false, false, false},  // 1
+        {true, true, false, true, true, false, true},     // 2
+        {true, true, true, true, false, false, true},     // 3
+        {false, true, true, false, false, true, true},    // 4
+        {true, false, true, true, false, true, true},     // 5
+        {true, false, true, true, true, true, true},      // 6
+        {true, true, true, false, false, false, false},   // 7
+        {true, true, true, true, true, true, true},       // 8
+        {true, true, true, true, false, true, true}       // 9
+    }};
+}
 
 UIManager::UIManager(GLRenderer& renderer)
     : renderer_(renderer) {

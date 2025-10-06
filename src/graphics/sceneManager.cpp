@@ -3,23 +3,32 @@
 
 using namespace threepp;
 
-// Define static constants
-const float SceneManager::DEFAULT_CAMERA_DISTANCE = 8.0f;   // 8 units behind - far enough to see surroundings
-const float SceneManager::DEFAULT_CAMERA_HEIGHT = 4.0f;     // 4 units above - provides good viewing angle
-const float SceneManager::DEFAULT_CAMERA_LERP_SPEED = 0.1f; // 0.1 = smooth, 1.0 = instant - creates cinematic camera movement
-const float SceneManager::MINIMAP_VIEW_SIZE = 15.0f;        // 15 units - covers 30x30 area
-const float SceneManager::MINIMAP_HEIGHT = 30.0f;           // 30 units high - bird's eye view
-const float SceneManager::GROUND_SIZE = 50.0f;              // 50x50 units - large enough for driving around
-const int SceneManager::GRID_DIVISIONS = 50;                // 50 divisions - 1 unit per grid square
-const float SceneManager::GRID_Z_OFFSET = 0.01f;            // 0.01 units above ground - prevents z-fighting flickering
-const float SceneManager::CAMERA_FOV = 75.0f;               // FOV=75° (wide for awareness)
-const float SceneManager::CAMERA_NEAR = 0.1f;
-const float SceneManager::CAMERA_FAR = 1000.0f;
-const unsigned int SceneManager::AMBIENT_COLOR = 0x404040;  // Dim gray - prevents completely black shadows
-const float SceneManager::AMBIENT_INTENSITY = 1.0f;
-const unsigned int SceneManager::DIRECTIONAL_COLOR = 0xffffff;
-const float SceneManager::DIRECTIONAL_INTENSITY = 0.8f;     // 80% intensity - bright but not blown out
-const float SceneManager::SHADOW_AREA_SIZE = 25.0f;         // Shadow area: 50x50 units matches ground size
+// Anonymous namespace - these constants are LOCAL to this file only (NOT global!)
+namespace {
+    // Camera constants
+    const float DEFAULT_CAMERA_DISTANCE = 8.0f;   // 8 units behind - far enough to see surroundings
+    const float DEFAULT_CAMERA_HEIGHT = 4.0f;     // 4 units above - provides good viewing angle
+    const float DEFAULT_CAMERA_LERP_SPEED = 0.1f; // 0.1 = smooth, 1.0 = instant - creates cinematic camera movement
+    const float MINIMAP_VIEW_SIZE = 15.0f;        // 15 units - covers 30x30 area
+    const float MINIMAP_HEIGHT = 50.0f;           // 50 units high - bird's eye view
+
+    // Ground/Grid constants
+    const float GROUND_SIZE = 50.0f;              // 50x50 units - large enough for driving around
+    const int GRID_DIVISIONS = 50;                // 50 divisions - 1 unit per grid square
+    const float GRID_Z_OFFSET = 0.01f;            // 0.01 units above ground - prevents z-fighting flickering
+
+    // Camera constants
+    const float CAMERA_FOV = 75.0f;               // FOV=75° (wide for awareness)
+    const float CAMERA_NEAR = 0.1f;
+    const float CAMERA_FAR = 1000.0f;
+
+    // Lighting constants
+    const unsigned int AMBIENT_COLOR = 0x404040;  // Dim gray - prevents completely black shadows
+    const float AMBIENT_INTENSITY = 1.0f;
+    const unsigned int DIRECTIONAL_COLOR = 0xffffff;
+    const float DIRECTIONAL_INTENSITY = 0.8f;     // 80% intensity - bright but not blown out
+    const float SHADOW_AREA_SIZE = 25.0f;         // Shadow area: 50x50 units matches ground size
+}
 
 SceneManager::SceneManager()
     : cameraDistance_(DEFAULT_CAMERA_DISTANCE),

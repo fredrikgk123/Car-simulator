@@ -1,22 +1,18 @@
 #pragma once
 
 #include <threepp/threepp.hpp>
+
+#include "gameObjectRenderer.hpp"
 #include "vehicle.hpp"
-#include "sceneManager.hpp"
 
-class VehicleRenderer {
-public:
-    VehicleRenderer(SceneManager& sceneManager, const Vehicle& vehicle);
-    ~VehicleRenderer();
+class VehicleRenderer : public GameObjectRenderer {
+  public:
+    VehicleRenderer(threepp::Scene& scene, const Vehicle& vehicle);
 
-    // Update visual representation to match vehicle state
-    void update();
+  protected:
+    // Override to create vehicle-specific model (red box)
+    void createModel() override;
 
-private:
-    void createVehicleModel();
-
-    SceneManager& sceneManager_;
+  private:
     const Vehicle& vehicle_;
-    std::shared_ptr<threepp::Group> vehicleGroup_;
-    std::shared_ptr<threepp::Mesh> bodyMesh_;
 };

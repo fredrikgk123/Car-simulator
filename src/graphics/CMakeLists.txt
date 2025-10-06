@@ -1,5 +1,7 @@
 # Create a library for graphics components
 add_library(graphics
+         gameObjectRenderer.cpp
+        gameObjectRenderer.hpp
         vehicleRenderer.cpp
         vehicleRenderer.hpp
         sceneManager.cpp
