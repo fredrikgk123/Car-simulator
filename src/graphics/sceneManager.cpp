@@ -27,7 +27,7 @@ namespace {
     const float AMBIENT_INTENSITY = 1.0f;
     const unsigned int DIRECTIONAL_COLOR = 0xffffff;
     const float DIRECTIONAL_INTENSITY = 0.8f;     // 80% intensity - bright but not blown out
-    const float SHADOW_AREA_SIZE = 25.0f;         // Shadow area: 50x50 units matches ground size
+    const float SHADOW_AREA_SIZE = 50.0f;         // Shadow area: 100x100 units
 }
 
 SceneManager::SceneManager()

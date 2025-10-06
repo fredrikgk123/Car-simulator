@@ -26,7 +26,14 @@ FetchContent_Declare(
     DOWNLOAD_NO_EXTRACT TRUE
 )
 
-FetchContent_MakeAvailable(threepp)
+# Fetch Catch2 for unit testing
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.4.0
+)
+
+FetchContent_MakeAvailable(threepp Catch2)
 FetchContent_GetProperties(miniaudio)
 if(NOT miniaudio_POPULATED)
     FetchContent_Populate(miniaudio)
@@ -35,4 +42,9 @@ endif()
 add_subdirectory(src)
 target_link_libraries(bilsim PUBLIC threepp::threepp)
 
+# Enable testing
+enable_testing()
+add_subdirectory(tests)
+
 message(STATUS "bilsim configured successfully with audio support (miniaudio)")
+message(STATUS "Catch2 testing framework configured")
