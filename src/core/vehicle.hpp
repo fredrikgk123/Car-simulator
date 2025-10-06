@@ -1,9 +1,11 @@
 #pragma once
 
-#include <vector>
+#include <array>
+#include <cmath>
 
 class Vehicle {
 public:
+    // Constructor - takes x, y, z starting position
     Vehicle(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
     // Control methods
@@ -14,23 +16,35 @@ public:
     void reset();
 
     // Getters
-    std::vector<float> getPosition() const;
+    const std::array<float, 3>& getPosition() const;
     float getRotation() const;
-    std::vector<float> getSize() const;
+    const std::array<float, 3>& getSize() const;
     float getVelocity() const;
+    float getMaxSpeed() const { return MAX_SPEED; }
+
+    // Constants - public for use by other systems (e.g., audio, UI)
+    static const float MAX_SPEED;              // Maximum forward speed (units/sec)
+    static const float MAX_REVERSE_SPEED;      // Maximum reverse speed (units/sec)
 
 private:
     // Calculate turn rate based on current speed
     float calculateTurnRate() const;
 
-    std::vector<float> position_;           // x, y, z coordinates
-    std::vector<float> initialPosition_;    // For reset functionality
-    float rotation_;                         // In radians
-    float velocity_;                         // Current speed
-    float acceleration_;                     // Current acceleration
-    float maxSpeed_;                         // Maximum forward speed
-    float turnSpeed_;                        // Turn rate
-    float forwardAcceleration_;             // Forward acceleration rate
-    float backwardAcceleration_;            // Backward acceleration rate
-    std::vector<float> size_;               // Width, height, length
+    // Physics constants
+    static const float TURN_SPEED;              // Base turn rate (radians/sec)
+    static const float FORWARD_ACCELERATION;    // Forward acceleration (units/sec²)
+    static const float BACKWARD_ACCELERATION;   // Reverse acceleration (units/sec²)
+    static const float FRICTION_COEFFICIENT;    // Per-frame friction multiplier
+    static const float MIN_TURN_SPEED;          // Minimum speed required to turn
+
+    // Vehicle dimensions
+    static const float VEHICLE_WIDTH;
+    static const float VEHICLE_HEIGHT;
+    static const float VEHICLE_LENGTH;
+
+    std::array<float, 3> position_;           // x, y, z coordinates
+    std::array<float, 3> initialPosition_;    // For reset functionality
+    float rotation_;                          // In radians
+    float velocity_;                          // Current speed
+    float acceleration_;                      // Current acceleration
 };

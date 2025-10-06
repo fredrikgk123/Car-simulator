@@ -62,19 +62,26 @@ void InputHandler::onKeyReleased(KeyEvent evt) {
 
 void InputHandler::update(float deltaTime) {
     // Handle acceleration
-    if (upPressed_) {
+    if (upPressed_ == true) {
         vehicle_.accelerateForward();
-    } else if (downPressed_) {
+    } else if (downPressed_ == true) {
         vehicle_.accelerateBackward();
     }
 
     // Handle turning (reverse when moving backwards)
-    float turnDirection = (vehicle_.getVelocity() >= 0) ? 1.0f : -1.0f;
+    float velocity = vehicle_.getVelocity();
+    float turnDirection = 1.0f;
 
-    if (leftPressed_) {
+    if (velocity >= 0.0f) {
+        turnDirection = 1.0f;
+    } else {
+        turnDirection = -1.0f;
+    }
+
+    if (leftPressed_ == true) {
         vehicle_.turn(deltaTime * turnDirection);
     }
-    if (rightPressed_) {
+    if (rightPressed_ == true) {
         vehicle_.turn(-deltaTime * turnDirection);
     }
 }

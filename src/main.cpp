@@ -1,16 +1,20 @@
 #include <threepp/threepp.hpp>
 #include <memory>
 #include <iostream>
-#include "vehicle.hpp"
-#include "vehicleRenderer.hpp"
-#include "sceneManager.hpp"
-#include "inputHandler.hpp"
-#include "audioManager.hpp"
-#include "uiManager.hpp"
+#include "core/vehicle.hpp"
+#include "graphics/vehicleRenderer.hpp"
+#include "graphics/sceneManager.hpp"
+#include "input/inputHandler.hpp"
+#include "audio/audioManager.hpp"
+#include "ui/uiManager.hpp"
 
 using namespace threepp;
 
 int main() {
+    // UI Constants
+    int minimapSize = 150;           // Minimap size in pixels
+    int minimapPadding = 10;         // Padding from screen corner
+
     Canvas canvas("Bilsimulator");
 
     // Initialize scene
@@ -26,14 +30,14 @@ int main() {
     VehicleRenderer vehicleRenderer(sceneManager, vehicle);
 
     // Setup input handling
-    auto inputHandler = std::make_unique<InputHandler>(vehicle);
+    std::unique_ptr<InputHandler> inputHandler = std::make_unique<InputHandler>(vehicle);
     canvas.addKeyListener(*inputHandler);
 
     // Initialize audio (optional)
     AudioManager audioManager;
     bool audioEnabled = audioManager.initialize("carnoise.wav");
 
-    if (!audioEnabled) {
+    if (audioEnabled == false) {
         std::cout << "Audio file 'carnoise.wav' not found. Continuing without audio..." << std::endl;
     }
 
@@ -56,17 +60,18 @@ int main() {
         vehicleRenderer.update();
 
         // Update camera to follow vehicle
-        auto pos = vehicle.getPosition();
-        sceneManager.updateCameraFollowTarget(pos[0], pos[1], pos[2], vehicle.getRotation());
-        sceneManager.updateMinimapCamera(pos[0], pos[2]);
+        std::array<float, 3> position = vehicle.getPosition();
+        float rotation = vehicle.getRotation();
+        sceneManager.updateCameraFollowTarget(position[0], position[1], position[2], rotation);
+        sceneManager.updateMinimapCamera(position[0], position[2]);
 
         // Update audio
-        if (audioEnabled) {
+        if (audioEnabled == true) {
             audioManager.update(vehicle);
         }
 
-        auto& renderer = sceneManager.getRenderer();
-        auto size = canvas.size();
+        GLRenderer& renderer = sceneManager.getRenderer();
+        WindowSize size = canvas.size();
 
         // Render main view
         renderer.setViewport(0, 0, size.width(), size.height());
@@ -75,9 +80,10 @@ int main() {
         sceneManager.getRenderer().render(sceneManager.getScene(), sceneManager.getCamera());
 
         // Render minimap
-        int minimapSize = 150;  // 150 pixels - small enough to not obstruct view, large enough to be useful
-        renderer.setViewport(10, size.height() - minimapSize - 10, minimapSize, minimapSize);  // 10px padding from corner
-        renderer.setScissor(10, size.height() - minimapSize - 10, minimapSize, minimapSize);
+        int minimapX = minimapPadding;
+        int minimapY = size.height() - minimapSize - minimapPadding;
+        renderer.setViewport(minimapX, minimapY, minimapSize, minimapSize);
+        renderer.setScissor(minimapX, minimapY, minimapSize, minimapSize);
         renderer.setScissorTest(true);
         sceneManager.renderMinimap();
         renderer.setScissorTest(false);

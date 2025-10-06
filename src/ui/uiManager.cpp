@@ -1,4 +1,5 @@
 #include "uiManager.hpp"
+#include "../core/vehicle.hpp"
 #include <cmath>
 #include <array>
 
@@ -6,7 +7,7 @@ using namespace threepp;
 
 // Seven-segment display patterns for digits 0-9
 // Segments: top, top-right, bottom-right, bottom, bottom-left, top-left, middle
-static const std::array<std::array<bool, 7>, 10> SEGMENT_PATTERNS = {{
+const std::array<std::array<bool, 7>, 10> SEGMENT_PATTERNS = {{
     {true, true, true, true, true, true, false},      // 0
     {false, true, true, false, false, false, false},  // 1
     {true, true, false, true, true, false, true},     // 2
@@ -75,8 +76,9 @@ void UIManager::createSpeedometerGeometry() {
     float digitSpacing = 0.055f;    // 0.055 units between digits - tight spacing for compact display
     float digitY = -0.775f;         // Below the bar
 
-    for (int i = 0; i < 3; i++) {
-        createSevenSegmentDigit(digitStartX + i * digitSpacing, digitY, i);
+    for (int i = 0; i < 3; i = i + 1) {
+        float xPosition = digitStartX + (i * digitSpacing);
+        createSevenSegmentDigit(xPosition, digitY, i);
     }
 }
 
@@ -141,8 +143,8 @@ void UIManager::createSevenSegmentDigit(float xPos, float yPos, int digitIndex) 
     digitSegments_[digitIndex] = segments;
 
     // Initially hide all segments
-    for (auto& seg : segments) {
-        seg->visible = false;
+    for (int s = 0; s < segments.size(); s = s + 1) {
+        segments[s]->visible = false;
     }
 }
 
@@ -150,14 +152,19 @@ void UIManager::updateSpeedometer(float speed) {
     // Calculate speed display
     float maxSpeed = 250.0f;  // 250 km/h - high enough for max vehicle speed display
     float displaySpeed = std::abs(speed) * 10.0f;  // *10 converts units/sec to km/h (tuned scale)
-    float speedRatio = std::min(displaySpeed / maxSpeed, 1.0f);  // Clamp to 0-1 range
+    float speedRatio = displaySpeed / maxSpeed;
+
+    // Clamp to 0-1 range
+    if (speedRatio > 1.0f) {
+        speedRatio = 1.0f;
+    }
 
     // Update fill bar scale
     speedometerFill_->scale.x = speedRatio;
 
     // Position bar to grow from left to right
     float barWidth = 0.32f;  // Same as geometry width
-    speedometerFill_->position.x = 0.6f - (barWidth / 2.0f) * (1.0f - speedRatio);  // Offset calculation for left-to-right growth
+    speedometerFill_->position.x = 0.6f - ((barWidth / 2.0f) * (1.0f - speedRatio));  // Offset calculation for left-to-right growth
 
     // Update seven-segment display
     int speedInt = static_cast<int>(displaySpeed);
@@ -167,19 +174,25 @@ void UIManager::updateSpeedometer(float speed) {
 
     std::array<int, 3> digits = {hundreds, tens, ones};
 
-    for (int d = 0; d < 3; d++) {
+    for (int d = 0; d < 3; d = d + 1) {
         int digit = digits[d];
 
         // Hide leading zeros
-        bool hideDigit = (d == 0 && speedInt < 100) || (d == 1 && speedInt < 10);
+        bool hideDigit = false;
+        if (d == 0 && speedInt < 100) {
+            hideDigit = true;
+        }
+        if (d == 1 && speedInt < 10) {
+            hideDigit = true;
+        }
 
-        if (hideDigit) {
-            for (int s = 0; s < 7; s++) {
+        if (hideDigit == true) {
+            for (int s = 0; s < 7; s = s + 1) {
                 digitSegments_[d][s]->visible = false;
             }
         } else {
             // Show segments based on digit pattern
-            for (int s = 0; s < 7; s++) {
+            for (int s = 0; s < 7; s = s + 1) {
                 digitSegments_[d][s]->visible = SEGMENT_PATTERNS[digit][s];
             }
         }

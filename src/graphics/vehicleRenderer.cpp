@@ -13,13 +13,13 @@ VehicleRenderer::VehicleRenderer(SceneManager& sceneManager, const Vehicle& vehi
 }
 
 VehicleRenderer::~VehicleRenderer() {
-    if (vehicleGroup_) {
+    if (vehicleGroup_ != nullptr) {
         sceneManager_.getScene().remove(*vehicleGroup_);
     }
 }
 
 void VehicleRenderer::createVehicleModel() {
-    auto size = vehicle_.getSize();
+    std::array<float, 3> size = vehicle_.getSize();
 
     // Create simple box geometry for vehicle
     auto geometry = BoxGeometry::create(size[0], size[1], size[2]);
@@ -27,7 +27,7 @@ void VehicleRenderer::createVehicleModel() {
     material->color = Color::red;
 
     bodyMesh_ = Mesh::create(geometry, material);
-    bodyMesh_->position.y = size[1] / 2;  // Half height - positions box so bottom sits at y=0 (on ground)
+    bodyMesh_->position.y = size[1] / 2.0f;  // Half height - positions box so bottom sits at y=0 (on ground)
     bodyMesh_->castShadow = true;
 
     vehicleGroup_->add(bodyMesh_);
@@ -35,7 +35,7 @@ void VehicleRenderer::createVehicleModel() {
 
 void VehicleRenderer::update() {
     // Sync visual representation with physics model
-    auto position = vehicle_.getPosition();
+    std::array<float, 3> position = vehicle_.getPosition();
     vehicleGroup_->position.set(position[0], position[1], position[2]);
     vehicleGroup_->rotation.y = vehicle_.getRotation();
 }

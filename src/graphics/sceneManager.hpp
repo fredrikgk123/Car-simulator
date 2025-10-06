@@ -28,7 +28,31 @@ public:
     void renderMinimap();
     void resize(const threepp::WindowSize& size);
 
+    // Camera constants - exposed for external configuration if needed
+    static const float DEFAULT_CAMERA_DISTANCE;
+    static const float DEFAULT_CAMERA_HEIGHT;
+    static const float DEFAULT_CAMERA_LERP_SPEED;
+    static const float MINIMAP_VIEW_SIZE;
+    static const float MINIMAP_HEIGHT;
+
 private:
+    // Ground/Grid constants
+    static const float GROUND_SIZE;
+    static const int GRID_DIVISIONS;
+    static const float GRID_Z_OFFSET;
+
+    // Camera constants
+    static const float CAMERA_FOV;
+    static const float CAMERA_NEAR;
+    static const float CAMERA_FAR;
+
+    // Lighting constants
+    static const unsigned int AMBIENT_COLOR;
+    static const float AMBIENT_INTENSITY;
+    static const unsigned int DIRECTIONAL_COLOR;
+    static const float DIRECTIONAL_INTENSITY;
+    static const float SHADOW_AREA_SIZE;
+
     std::unique_ptr<threepp::GLRenderer> renderer_;
     std::shared_ptr<threepp::Scene> scene_;
     std::shared_ptr<threepp::PerspectiveCamera> camera_;
