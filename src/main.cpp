@@ -36,6 +36,10 @@ int main() {
     Vehicle vehicle(0.0f, 0.0f, 0.0f);
     VehicleRenderer vehicleRenderer(sceneManager.getScene(), vehicle);
 
+    // Try to load a custom car model (OBJ format)
+    // The Camaro model is already in the assets directory
+    vehicleRenderer.loadModel("assets/Chevrolet_Camaro_SS_High.obj");
+
     // Create powerup manager with 20 randomly placed powerups
     PowerupManager powerupManager(POWERUP_COUNT, PLAY_AREA_SIZE);
 
@@ -46,8 +50,8 @@ int main() {
         powerupRenderers.push_back(std::move(renderer));
     }
 
-    // Setup input handling
-    std::unique_ptr<InputHandler> inputHandler = std::make_unique<InputHandler>(vehicle);
+    // Setup input handling (pass sceneManager for camera toggle)
+    std::unique_ptr<InputHandler> inputHandler = std::make_unique<InputHandler>(vehicle, sceneManager);
     canvas.addKeyListener(*inputHandler);
 
     // Set up reset callback to respawn powerups
@@ -57,10 +61,10 @@ int main() {
 
     // Initialize audio (optional)
     AudioManager audioManager;
-    bool audioEnabled = audioManager.initialize("carnoise.wav");
+    bool audioEnabled = audioManager.initialize("assets/carnoise.wav");
 
     if (audioEnabled == false) {
-        std::cout << "Audio file 'carnoise.wav' not found. Continuing without audio..." << std::endl;
+        std::cout << "Audio file 'assets/carnoise.wav' not found. Continuing without audio..." << std::endl;
     }
 
     // Setup UI
@@ -94,7 +98,7 @@ int main() {
         // Update camera to follow vehicle
         std::array<float, 3> position = vehicle.getPosition();
         float rotation = vehicle.getRotation();
-        sceneManager.updateCameraFollowTarget(position[0], position[1], position[2], rotation);
+        sceneManager.updateCameraFollowTarget(position[0], position[1], position[2], rotation, vehicle.isNitrousActive());
         sceneManager.updateMinimapCamera(position[0], position[2]);
 
         // Update camera FOV based on nitrous state (speed FOV effect)

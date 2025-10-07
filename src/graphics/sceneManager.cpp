@@ -12,6 +12,11 @@ namespace {
     const float MINIMAP_VIEW_SIZE = 15.0f;        // 15 units - covers 30x30 area
     const float MINIMAP_HEIGHT = 50.0f;           // 50 units high - bird's eye view
 
+    // Hood cam constants
+    const float HOOD_CAM_FORWARD_OFFSET = 2.5f;  // 2.5 units in front of vehicle center (moved more forward)
+    const float HOOD_CAM_HEIGHT = 1.3f;          // 1.3 units above ground (0.5 car lift + 0.8 hood height)
+    const float HOOD_CAM_LOOK_DISTANCE = 10.0f;  // Look 10 units ahead
+
     // Ground/Grid constants
     const float GROUND_SIZE = 200.0f;             // 200x200 units - large play area
     const int GRID_DIVISIONS = GROUND_SIZE;       // Same as ground size - 1 unit per grid square
@@ -19,7 +24,7 @@ namespace {
 
     // Camera constants
     const float CAMERA_FOV = 75.0f;               // FOV=75° (wide for awareness)
-    const float NITROUS_FOV = 90.0f;              // FOV=90° during nitrous boost (wider = faster feel)
+    const float NITROUS_FOV = 82.0f;              // FOV=82° during nitrous boost (wider = faster feel)
     const float FOV_LERP_SPEED = 0.05f;           // Smooth FOV transitions
     const float CAMERA_NEAR = 0.1f;
     const float CAMERA_FAR = 1000.0f;
@@ -40,6 +45,7 @@ SceneManager::SceneManager()
       currentFOV_(CAMERA_FOV),
       targetFOV_(CAMERA_FOV),
       fovLerpSpeed_(FOV_LERP_SPEED),
+      cameraMode_(CameraMode::FOLLOW),
       currentCameraX_(0.0f),
       currentCameraY_(DEFAULT_CAMERA_HEIGHT),
       currentCameraZ_(DEFAULT_CAMERA_DISTANCE),
@@ -112,11 +118,31 @@ void SceneManager::setupRenderer(const WindowSize& size) {
     renderer_->setClearColor(Color::aliceblue);
 }
 
-void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation) {
-    // Calculate desired camera position behind vehicle
-    float desiredCameraX = targetX - (std::sin(targetRotation) * cameraDistance_);
-    float desiredCameraY = targetY + cameraHeight_;
-    float desiredCameraZ = targetZ - (std::cos(targetRotation) * cameraDistance_);
+void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation, bool nitrousActive) {
+    float desiredCameraX, desiredCameraY, desiredCameraZ;
+    float desiredLookAtX, desiredLookAtY, desiredLookAtZ;
+
+    if (cameraMode_ == CameraMode::HOOD) {
+        // Hood cam - position camera at hood level, slightly forward
+        desiredCameraX = targetX + (std::sin(targetRotation) * HOOD_CAM_FORWARD_OFFSET);
+        desiredCameraY = targetY + HOOD_CAM_HEIGHT;
+        desiredCameraZ = targetZ + (std::cos(targetRotation) * HOOD_CAM_FORWARD_OFFSET);
+
+        // Look ahead in the direction vehicle is facing
+        desiredLookAtX = targetX + (std::sin(targetRotation) * HOOD_CAM_LOOK_DISTANCE);
+        desiredLookAtY = targetY + HOOD_CAM_HEIGHT;
+        desiredLookAtZ = targetZ + (std::cos(targetRotation) * HOOD_CAM_LOOK_DISTANCE);
+    } else {
+        // Follow cam - position camera behind vehicle
+        desiredCameraX = targetX - (std::sin(targetRotation) * cameraDistance_);
+        desiredCameraY = targetY + cameraHeight_;
+        desiredCameraZ = targetZ - (std::cos(targetRotation) * cameraDistance_);
+
+        // Look at the vehicle
+        desiredLookAtX = targetX;
+        desiredLookAtY = targetY;
+        desiredLookAtZ = targetZ;
+    }
 
     // Smoothly interpolate camera position
     currentCameraX_ = currentCameraX_ + ((desiredCameraX - currentCameraX_) * cameraLerpSpeed_);
@@ -124,9 +150,9 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
     currentCameraZ_ = currentCameraZ_ + ((desiredCameraZ - currentCameraZ_) * cameraLerpSpeed_);
 
     // Smoothly interpolate look-at target
-    currentLookAtX_ = currentLookAtX_ + ((targetX - currentLookAtX_) * cameraLerpSpeed_);
-    currentLookAtY_ = currentLookAtY_ + ((targetY - currentLookAtY_) * cameraLerpSpeed_);
-    currentLookAtZ_ = currentLookAtZ_ + ((targetZ - currentLookAtZ_) * cameraLerpSpeed_);
+    currentLookAtX_ = currentLookAtX_ + ((desiredLookAtX - currentLookAtX_) * cameraLerpSpeed_);
+    currentLookAtY_ = currentLookAtY_ + ((desiredLookAtY - currentLookAtY_) * cameraLerpSpeed_);
+    currentLookAtZ_ = currentLookAtZ_ + ((desiredLookAtZ - currentLookAtZ_) * cameraLerpSpeed_);
 
     // Apply smoothed position and look-at
     camera_->position.set(currentCameraX_, currentCameraY_, currentCameraZ_);
@@ -172,6 +198,22 @@ void SceneManager::setupMinimapCamera(float aspectRatio) {
     // Position camera above scene looking down
     minimapCamera_->position.set(0, MINIMAP_HEIGHT, 0);
     minimapCamera_->lookAt(Vector3(0, 0, 0));
+}
+
+void SceneManager::setCameraMode(CameraMode mode) {
+    cameraMode_ = mode;
+}
+
+CameraMode SceneManager::getCameraMode() const {
+    return cameraMode_;
+}
+
+void SceneManager::toggleCameraMode() {
+    if (cameraMode_ == CameraMode::FOLLOW) {
+        cameraMode_ = CameraMode::HOOD;
+    } else {
+        cameraMode_ = CameraMode::FOLLOW;
+    }
 }
 
 void SceneManager::renderMinimap() {

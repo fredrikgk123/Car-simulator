@@ -2,8 +2,9 @@
 
 using namespace threepp;
 
-InputHandler::InputHandler(Vehicle& vehicle)
+InputHandler::InputHandler(Vehicle& vehicle, SceneManager& sceneManager)
     : vehicle_(vehicle),
+      sceneManager_(sceneManager),
       upPressed_(false),
       downPressed_(false),
       leftPressed_(false),
@@ -46,6 +47,10 @@ void InputHandler::onKeyPressed(KeyEvent evt) {
                 vehicle_.activateNitrous();
                 shiftPressed_ = true;
             }
+            break;
+        case Key::C:
+            // Toggle camera mode
+            sceneManager_.toggleCameraMode();
             break;
         case Key::R:
             vehicle_.reset();

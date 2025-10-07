@@ -1,18 +1,68 @@
 #include "vehicleRenderer.hpp"
+#include <threepp/loaders/OBJLoader.hpp>
+#include <iostream>
 
 using namespace threepp;
 
 VehicleRenderer::VehicleRenderer(Scene& scene, const Vehicle& vehicle)
     : GameObjectRenderer(scene, vehicle),
-      vehicle_(vehicle) {
+      vehicle_(vehicle),
+      useCustomModel_(false) {
     // Now call createModel() after VehicleRenderer is fully constructed
     createModel();
+}
+
+bool VehicleRenderer::loadModel(const std::string& modelPath) {
+    try {
+        OBJLoader loader;
+        auto loadedGroup = loader.load(modelPath);
+
+        if (!loadedGroup) {
+            std::cerr << "Failed to load model: " << modelPath << std::endl;
+            return false;
+        }
+
+        // Clear existing model
+        if (bodyMesh_) {
+            objectGroup_->remove(*bodyMesh_);
+        }
+
+        // Scale and position the loaded model
+        std::array<float, 3> size = vehicle_.getSize();
+
+        // Calculate bounding box to scale appropriately
+        // Most car models need to be scaled down
+        float modelScale = 0.5f;  // Adjust this based on your model
+        loadedGroup->scale.setScalar(modelScale);
+
+        // Position above ground level to prevent sinking
+        // Adjust this value if the car is still too low or too high
+        loadedGroup->position.y = 0.5f;  // Lift the car up
+
+        // Enable shadows for all meshes in the loaded model
+        loadedGroup->traverse([](Object3D& obj) {
+            if (auto mesh = obj.as<Mesh>()) {
+                mesh->castShadow = true;
+                mesh->receiveShadow = false;
+            }
+        });
+
+        objectGroup_->add(loadedGroup);
+        useCustomModel_ = true;
+
+        std::cout << "Successfully loaded car model: " << modelPath << std::endl;
+        return true;
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading model: " << e.what() << std::endl;
+        return false;
+    }
 }
 
 void VehicleRenderer::createModel() {
     std::array<float, 3> size = vehicle_.getSize();
 
-    // Create simple box geometry for vehicle
+    // Create simple box geometry for vehicle (fallback)
     auto geometry = BoxGeometry::create(size[0], size[1], size[2]);
     auto material = MeshPhongMaterial::create();
     material->color = Color::red;  // Red for player vehicle

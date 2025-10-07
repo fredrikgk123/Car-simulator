@@ -3,6 +3,12 @@
 #include <threepp/threepp.hpp>
 #include <memory>
 
+// Camera modes
+enum class CameraMode {
+    FOLLOW,   // Third-person follow camera
+    HOOD      // First-person hood camera
+};
+
 class SceneManager {
 public:
     SceneManager();
@@ -20,9 +26,14 @@ public:
     void setupMinimapCamera(float aspectRatio);
 
     // Camera control
-    void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation);
+    void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation, bool nitrousActive = false);
     void updateMinimapCamera(float targetX, float targetZ);
     void updateCameraFOV(bool nitrousActive);  // Dynamic FOV for speed effect
+
+    // Camera mode switching
+    void setCameraMode(CameraMode mode);
+    CameraMode getCameraMode() const;
+    void toggleCameraMode();
 
     // Rendering
     void render();
@@ -46,6 +57,9 @@ private:
     float currentFOV_;
     float targetFOV_;
     float fovLerpSpeed_;
+
+    // Camera mode
+    CameraMode cameraMode_;
 
     // Current camera state for smooth interpolation
     float currentCameraX_;

@@ -46,5 +46,15 @@ target_link_libraries(bilsim PUBLIC threepp::threepp)
 enable_testing()
 add_subdirectory(tests)
 
+# Copy assets directory to build directory
+add_custom_target(copy_assets ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    ${CMAKE_BINARY_DIR}/src/assets
+    COMMENT "Copying assets to build directory"
+    VERBATIM
+)
+add_dependencies(bilsim copy_assets)
+
 message(STATUS "bilsim configured successfully with audio support (miniaudio)")
 message(STATUS "Catch2 testing framework configured")

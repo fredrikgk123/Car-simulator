@@ -3,10 +3,11 @@
 #include <threepp/threepp.hpp>
 #include <functional>
 #include "vehicle.hpp"
+#include "../graphics/sceneManager.hpp"
 
 class InputHandler : public threepp::KeyListener {
 public:
-    explicit InputHandler(Vehicle& vehicle);
+    explicit InputHandler(Vehicle& vehicle, SceneManager& sceneManager);
 
     void onKeyPressed(threepp::KeyEvent evt) override;
     void onKeyReleased(threepp::KeyEvent evt) override;
@@ -21,6 +22,7 @@ private:
     void onReset();
 
     Vehicle& vehicle_;
+    SceneManager& sceneManager_;
 
     // Key state tracking
     bool upPressed_;
