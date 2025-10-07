@@ -43,6 +43,9 @@ void InputHandler::onKeyPressed(KeyEvent evt) {
             rightPressed_ = true;
             break;
         case Key::SPACE:
+            vehicle_.startDrift();
+            break;
+        case Key::F:
             if (shiftPressed_ == false) {
                 vehicle_.activateNitrous();
                 shiftPressed_ = true;
@@ -81,6 +84,9 @@ void InputHandler::onKeyReleased(KeyEvent evt) {
             rightPressed_ = false;
             break;
         case Key::SPACE:
+            vehicle_.stopDrift();
+            break;
+        case Key::F:
             shiftPressed_ = false;
             break;
         default:

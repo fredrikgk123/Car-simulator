@@ -14,6 +14,11 @@ public:
     void accelerateBackward();
     void turn(float amount);
 
+    // Drift methods
+    void startDrift();
+    void stopDrift();
+    bool isDrifting() const;
+
     // Nitrous methods
     void activateNitrous();
     void pickupNitrous();
@@ -35,6 +40,10 @@ private:
 
     float velocity_;                          // Current speed
     float acceleration_;                      // Current acceleration
+
+    // Drift state
+    bool isDrifting_;                         // Whether car is in drift mode
+    float driftAngle_;                        // Angle between facing direction and velocity direction
 
     // Nitrous state
     bool hasNitrous_;                         // Whether player has a nitrous pickup

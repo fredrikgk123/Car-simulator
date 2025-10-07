@@ -27,6 +27,8 @@ Vehicle::Vehicle(float x, float y, float z)
     : GameObject(x, y, z),
       velocity_(0.0f),
       acceleration_(0.0f),
+      isDrifting_(false),
+      driftAngle_(0.0f),
       hasNitrous_(false),
       nitrousActive_(false),
       nitrousTimeRemaining_(0.0f) {
@@ -55,6 +57,21 @@ void Vehicle::accelerateBackward() {
 void Vehicle::turn(float amount) {
     float turnRate = calculateTurnRate();
     rotation_ = rotation_ + (amount * TURN_SPEED * turnRate);
+
+    // When drifting, allow the car to build up a drift angle
+    if (isDrifting_ == true) {
+        // Accumulate drift angle more aggressively (increased multiplier from 0.5 to 1.2)
+        driftAngle_ = driftAngle_ + (amount * TURN_SPEED * turnRate * 1.2f);
+
+        // Increased max drift angle to ~60 degrees for more dramatic slides
+        const float MAX_DRIFT_ANGLE = static_cast<float>(M_PI) / 3.0f;  // 60° instead of 45°
+        if (driftAngle_ > MAX_DRIFT_ANGLE) {
+            driftAngle_ = MAX_DRIFT_ANGLE;
+        }
+        if (driftAngle_ < -MAX_DRIFT_ANGLE) {
+            driftAngle_ = -MAX_DRIFT_ANGLE;
+        }
+    }
 
     // Normalize rotation to [0, 2π]
     rotation_ = std::fmod(rotation_, 2.0f * static_cast<float>(M_PI));
@@ -117,6 +134,20 @@ void Vehicle::activateNitrous() {
     }
 }
 
+void Vehicle::startDrift() {
+    isDrifting_ = true;
+}
+
+void Vehicle::stopDrift() {
+    isDrifting_ = false;
+    // Keep more of the drift angle when exiting for a smoother transition
+    driftAngle_ = driftAngle_ * 0.5f;  // Changed from 0.3 to 0.5
+}
+
+bool Vehicle::isDrifting() const {
+    return isDrifting_;
+}
+
 void Vehicle::pickupNitrous() {
     hasNitrous_ = true;
 }
@@ -146,8 +177,9 @@ void Vehicle::update(float deltaTime) {
     // Update velocity based on acceleration
     velocity_ = velocity_ + (acceleration_ * deltaTime);
 
-    // Apply friction
-    velocity_ = velocity_ * FRICTION_COEFFICIENT;
+    // Apply friction (less friction while drifting)
+    float frictionCoefficient = isDrifting_ ? 0.992f : FRICTION_COEFFICIENT;
+    velocity_ = velocity_ * frictionCoefficient;
 
     // Clamp velocity to max speeds (higher during nitrous)
     float currentMaxSpeed = (nitrousActive_ == true) ? NITROUS_MAX_SPEED : MAX_SPEED;
@@ -159,9 +191,20 @@ void Vehicle::update(float deltaTime) {
         velocity_ = -MAX_REVERSE_SPEED;
     }
 
-    // Update position based on velocity and rotation
-    float dx = std::sin(rotation_) * velocity_ * deltaTime;
-    float dz = std::cos(rotation_) * velocity_ * deltaTime;
+    // When drifting, car moves in a direction between facing and drift angle
+    // When not drifting, car moves in facing direction
+    float movementAngle = rotation_;
+    if (isDrifting_ == true) {
+        // Blend between facing direction and drift angle
+        movementAngle = rotation_ - driftAngle_;
+
+        // Gradually reduce drift angle over time (self-correcting)
+        driftAngle_ = driftAngle_ * 0.95f;
+    }
+
+    // Update position based on velocity and movement angle
+    float dx = std::sin(movementAngle) * velocity_ * deltaTime;
+    float dz = std::cos(movementAngle) * velocity_ * deltaTime;
     position_[0] = position_[0] + dx;
     position_[2] = position_[2] + dz;
 
@@ -173,6 +216,8 @@ void Vehicle::reset() {
     GameObject::reset();
     velocity_ = 0.0f;
     acceleration_ = 0.0f;
+    isDrifting_ = false;
+    driftAngle_ = 0.0f;
     hasNitrous_ = false;
     nitrousActive_ = false;
     nitrousTimeRemaining_ = 0.0f;
