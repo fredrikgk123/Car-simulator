@@ -59,6 +59,11 @@ int main() {
         powerupManager.reset();
     });
 
+    // Set up vehicle reset callback to reset camera to orbit mode
+    vehicle.setResetCameraCallback([&sceneManager]() {
+        sceneManager.setCameraMode(CameraMode::FOLLOW);
+    });
+
     // Initialize audio (optional)
     AudioManager audioManager;
     bool audioEnabled = audioManager.initialize("assets/carnoise.wav");

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cmath>
+#include <functional>
 #include "gameObject.hpp"
 
 class Vehicle : public GameObject {
@@ -34,6 +35,9 @@ public:
     float getVelocity() const;
     float getMaxSpeed() const;
 
+    // Callback for resetting camera to orbit
+    void setResetCameraCallback(std::function<void()> callback);
+
 private:
     // Calculate turn rate based on current speed
     float calculateTurnRate() const;
@@ -49,4 +53,7 @@ private:
     bool hasNitrous_;                         // Whether player has a nitrous pickup
     bool nitrousActive_;                      // Whether nitrous is currently active
     float nitrousTimeRemaining_;              // Time left for nitrous boost
+
+    // Callback
+    std::function<void()> resetCameraCallback_;
 };

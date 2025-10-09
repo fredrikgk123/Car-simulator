@@ -221,6 +221,15 @@ void Vehicle::reset() {
     hasNitrous_ = false;
     nitrousActive_ = false;
     nitrousTimeRemaining_ = 0.0f;
+
+    // Reset camera to orbit mode
+    if (resetCameraCallback_) {
+        resetCameraCallback_();
+    }
+}
+
+void Vehicle::setResetCameraCallback(std::function<void()> callback) {
+    resetCameraCallback_ = callback;
 }
 
 float Vehicle::getVelocity() const {
