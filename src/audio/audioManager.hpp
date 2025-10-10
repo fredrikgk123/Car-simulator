@@ -18,7 +18,7 @@ public:
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;
 
-    // Initialize audio engine and load sound file
+    // Initialize audio engine and load sound files
     bool initialize(const std::string& engineSoundPath);
 
     // Update audio based on vehicle state
@@ -34,6 +34,8 @@ private:
 
     std::unique_ptr<ma_engine, AudioDeleter> engine_;
     std::unique_ptr<ma_sound, AudioDeleter> engineSound_;
+    std::unique_ptr<ma_sound, AudioDeleter> driftSound_;
     bool initialized_;
     bool soundLoaded_;
+    bool driftSoundLoaded_;
 };

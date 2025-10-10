@@ -23,8 +23,10 @@ void AudioManager::AudioDeleter::operator()(ma_sound* sound) const {
 AudioManager::AudioManager()
     : engine_(nullptr),
       engineSound_(nullptr),
+      driftSound_(nullptr),
       initialized_(false),
-      soundLoaded_(false) {
+      soundLoaded_(false),
+      driftSoundLoaded_(false) {
 }
 
 AudioManager::~AudioManager() = default;  // unique_ptr handles cleanup automatically
@@ -62,6 +64,23 @@ bool AudioManager::initialize(const std::string& engineSoundPath) {
     ma_sound_start(engineSound_.get());
 
     soundLoaded_ = true;
+
+    // Load drift/tire screech sound file
+    ma_sound* driftSnd = new ma_sound();
+    result = ma_sound_init_from_file(engine_.get(), "assets/tireScreech.wav",
+                                     MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION,
+                                     nullptr, nullptr, driftSnd);
+
+    if (result != MA_SUCCESS) {
+        std::cout << "Drift sound not found at: assets/tireScreech.wav" << std::endl;
+        delete driftSnd;
+    } else {
+        driftSound_.reset(driftSnd);
+        ma_sound_set_looping(driftSound_.get(), MA_TRUE);
+        ma_sound_set_volume(driftSound_.get(), 0.4f);  // 40% volume for drift sound
+        driftSoundLoaded_ = true;
+    }
+
     std::cout << "Audio loaded successfully" << std::endl;
     return true;
 }
@@ -73,6 +92,7 @@ void AudioManager::update(const Vehicle& vehicle) {
 
     float absVelocity = std::abs(vehicle.getVelocity());
     bool nitrousActive = vehicle.isNitrousActive();
+    bool isDrifting = vehicle.isDrifting();
 
     // Update pitch based on speed (simulates engine RPM)
     // Boost pitch and reference speed during nitrous for more aggressive sound
@@ -105,6 +125,27 @@ void AudioManager::update(const Vehicle& vehicle) {
     }
 
     ma_sound_set_volume(engineSound_.get(), volume);
+
+    // Handle drift sound
+    if (driftSoundLoaded_ == true) {
+        if (isDrifting == true && absVelocity > 5.0f) {
+            // Start drift sound if not already playing
+            if (ma_sound_is_playing(driftSound_.get()) == MA_FALSE) {
+                ma_sound_start(driftSound_.get());
+            }
+            // Adjust volume based on speed - louder when drifting faster
+            float driftVolume = 0.3f + (absVelocity / 20.0f) * 0.3f;  // Range: 0.3 to 0.6
+            if (driftVolume > 0.6f) {
+                driftVolume = 0.6f;
+            }
+            ma_sound_set_volume(driftSound_.get(), driftVolume);
+        } else {
+            // Stop drift sound when not drifting or moving too slow
+            if (ma_sound_is_playing(driftSound_.get()) == MA_TRUE) {
+                ma_sound_stop(driftSound_.get());
+            }
+        }
+    }
 }
 
 float AudioManager::calculateEnginePitch(float velocity, float maxSpeed) const {
