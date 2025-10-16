@@ -2,8 +2,8 @@
 
 #include <threepp/threepp.hpp>
 #include <functional>
-#include "vehicle.hpp"
-#include "../graphics/sceneManager.hpp"
+#include "../core/vehicle.hpp"
+#include "../graphics/scene_manager.hpp"
 
 class InputHandler : public threepp::KeyListener {
 public:

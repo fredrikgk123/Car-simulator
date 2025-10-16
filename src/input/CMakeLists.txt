@@ -1,7 +1,7 @@
 # Create a library for input handling components
 add_library(input
-    inputHandler.cpp
-    inputHandler.hpp
+    input_handler.cpp
+    input_handler.hpp
 )
 
 # Make headers available to other directories
@@ -14,4 +14,3 @@ target_link_libraries(input PUBLIC
     core
     threepp::threepp
 )
-

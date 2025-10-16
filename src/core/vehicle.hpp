@@ -3,7 +3,7 @@
 #include <array>
 #include <cmath>
 #include <functional>
-#include "gameObject.hpp"
+#include "game_object.hpp"
 
 class Vehicle : public GameObject {
 public:
@@ -35,8 +35,11 @@ public:
     float getVelocity() const;
     float getMaxSpeed() const;
 
+    // Setters for collision response
+    void setVelocity(float velocity);
+
     // Callback for resetting camera to orbit
-    void setResetCameraCallback(std::function<void()> callback);
+    void setResetCameraCallback(std::function<void()> &&callback);
 
 private:
     // Calculate turn rate based on current speed

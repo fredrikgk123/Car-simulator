@@ -1,13 +1,17 @@
 # Create a library for core game logic components
 add_library(core
-    gameObject.cpp
-    gameObject.hpp
+    game_object.cpp
+    game_object.hpp
     vehicle.cpp
     vehicle.hpp
     powerup.cpp
     powerup.hpp
-    powerupManager.cpp
-    powerupManager.hpp
+    powerup_manager.cpp
+    powerup_manager.hpp
+    obstacle.cpp
+    obstacle.hpp
+    obstacle_manager.cpp
+    obstacle_manager.hpp
 )
 
 target_include_directories(core PUBLIC

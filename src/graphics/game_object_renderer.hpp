@@ -2,7 +2,7 @@
 
 #include <threepp/threepp.hpp>
 #include <memory>
-#include "gameObject.hpp"
+#include "../core/game_object.hpp"
 
 // Generic renderer that can render any GameObject
 class GameObjectRenderer {
@@ -26,4 +26,3 @@ protected:
     std::shared_ptr<threepp::Group> objectGroup_;
     std::shared_ptr<threepp::Mesh> bodyMesh_;
 };
-

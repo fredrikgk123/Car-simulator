@@ -1,5 +1,5 @@
-#include "gameObjectRenderer.hpp"
-#include "../core/gameObject.hpp"
+#include "game_object_renderer.hpp"
+#include "../core/game_object.hpp"
 
 using namespace threepp;
 

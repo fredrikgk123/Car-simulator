@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gameObject.hpp"
+#include "game_object.hpp"
 
 enum class PowerupType {
     NITROUS
@@ -18,4 +18,3 @@ private:
     PowerupType type_;
     float rotationSpeed_;
 };
-

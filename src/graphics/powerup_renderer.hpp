@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gameObjectRenderer.hpp"
+#include "game_object_renderer.hpp"
 #include "../core/powerup.hpp"
 
 class PowerupRenderer : public GameObjectRenderer {
@@ -13,4 +13,3 @@ protected:
 private:
     const Powerup& powerup_;
 };
-

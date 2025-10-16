@@ -1,7 +1,7 @@
 # Create a library for audio components
 add_library(audio
-    audioManager.cpp
-    audioManager.hpp
+    audio_manager.cpp
+    audio_manager.hpp
 )
 
 # Make headers available to other directories
@@ -18,4 +18,3 @@ target_link_libraries(audio PUBLIC
 target_include_directories(audio PRIVATE
     ${miniaudio_SOURCE_DIR}
 )
-
