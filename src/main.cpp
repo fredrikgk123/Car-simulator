@@ -38,131 +38,131 @@ int main() {
     Canvas canvas("Bilsimulator");
 
     // Initialize scene
-    SceneManager sceneManager;
-    sceneManager.setupCamera(canvas.aspect());
-    sceneManager.setupMinimapCamera(MINIMAP_ASPECT_RATIO);
-    sceneManager.setupRenderer(canvas.size());
-    sceneManager.setupLighting();
-    sceneManager.setupGround();
+    SceneManager scene_manager;
+    scene_manager.setupCamera(canvas.aspect());
+    scene_manager.setupMinimapCamera(MINIMAP_ASPECT_RATIO);
+    scene_manager.setupRenderer(canvas.size());
+    scene_manager.setupLighting();
+    scene_manager.setupGround();
 
     // Create vehicle and renderer
     Vehicle vehicle(SPAWN_X, SPAWN_Y, SPAWN_Z);
-    VehicleRenderer vehicleRenderer(sceneManager.getScene(), vehicle);
+    VehicleRenderer vehicle_renderer(scene_manager.getScene(), vehicle);
 
     // Load custom car model
-    vehicleRenderer.loadModel(CAR_MODEL_PATH);
+    vehicle_renderer.loadModel(CAR_MODEL_PATH);
 
     // Create obstacle manager with walls and trees
-    ObstacleManager obstacleManager(PLAY_AREA_SIZE, TREE_COUNT);
+    ObstacleManager obstacle_manager(PLAY_AREA_SIZE, TREE_COUNT);
 
     // Create renderers for all obstacles
-    std::vector<std::unique_ptr<ObstacleRenderer>> obstacleRenderers;
-    for (const auto& obstacle : obstacleManager.getObstacles()) {
-        auto renderer = std::make_unique<ObstacleRenderer>(sceneManager.getScene(), *obstacle);
-        obstacleRenderers.push_back(std::move(renderer));
+    std::vector<std::unique_ptr<ObstacleRenderer>> obstacle_renderers;
+    for (const auto& obstacle : obstacle_manager.getObstacles()) {
+        auto renderer = std::make_unique<ObstacleRenderer>(scene_manager.getScene(), *obstacle);
+        obstacle_renderers.push_back(std::move(renderer));
     }
 
     // Create powerup manager with randomly placed powerups
-    PowerupManager powerupManager(POWERUP_COUNT, PLAY_AREA_SIZE);
+    PowerupManager powerup_manager(POWERUP_COUNT, PLAY_AREA_SIZE);
 
     // Create renderers for all powerups
-    std::vector<std::unique_ptr<PowerupRenderer>> powerupRenderers;
-    for (const auto& powerup : powerupManager.getPowerups()) {
-        auto renderer = std::make_unique<PowerupRenderer>(sceneManager.getScene(), *powerup);
-        powerupRenderers.push_back(std::move(renderer));
+    std::vector<std::unique_ptr<PowerupRenderer>> powerup_renderers;
+    for (const auto& powerup : powerup_manager.getPowerups()) {
+        auto renderer = std::make_unique<PowerupRenderer>(scene_manager.getScene(), *powerup);
+        powerup_renderers.push_back(std::move(renderer));
     }
 
     // Setup input handling
-    std::unique_ptr<InputHandler> inputHandler = std::make_unique<InputHandler>(vehicle, sceneManager);
-    canvas.addKeyListener(*inputHandler);
+    std::unique_ptr<InputHandler> input_handler = std::make_unique<InputHandler>(vehicle, scene_manager);
+    canvas.addKeyListener(*input_handler);
 
     // Set up reset callback to respawn powerups
-    inputHandler->setResetCallback([&powerupManager]() {
-        powerupManager.reset();
+    input_handler->setResetCallback([&powerup_manager]() {
+        powerup_manager.reset();
     });
 
     // Set up vehicle reset callback to reset camera to follow mode
-    vehicle.setResetCameraCallback([&sceneManager]() {
-        sceneManager.setCameraMode(CameraMode::FOLLOW);
+    vehicle.setResetCameraCallback([&scene_manager]() {
+        scene_manager.setCameraMode(CameraMode::FOLLOW);
     });
 
     // Initialize audio
-    AudioManager audioManager;
-    bool audioEnabled = audioManager.initialize(ENGINE_SOUND_PATH);
+    AudioManager audio_manager;
+    bool audio_enabled = audio_manager.initialize(ENGINE_SOUND_PATH);
 
-    if (!audioEnabled) {
+    if (!audio_enabled) {
         std::cout << "Audio file '" << ENGINE_SOUND_PATH << "' not found. Continuing without audio..." << std::endl;
     }
 
     // Setup UI
-    UIManager uiManager(sceneManager.getRenderer());
+    UIManager ui_manager(scene_manager.getRenderer());
 
     // Handle window resize
     canvas.onWindowResize([&](const WindowSize& size) {
-        sceneManager.resize(size);
+        scene_manager.resize(size);
     });
 
     // Main game loop
     Clock clock;
 
     canvas.animate([&] {
-        float deltaTime = clock.getDelta();
+        float delta_time = clock.getDelta();
 
         // Update game state
-        inputHandler->update(deltaTime);
-        vehicle.update(deltaTime);
-        vehicleRenderer.update();
+        input_handler->update(delta_time);
+        vehicle.update(delta_time);
+        vehicle_renderer.update();
 
         // Handle obstacle collisions
-        obstacleManager.handleCollisions(vehicle);
+        obstacle_manager.handleCollisions(vehicle);
 
         // Update powerups and handle collisions
-        powerupManager.update(deltaTime);
-        powerupManager.handleCollisions(vehicle);
+        powerup_manager.update(delta_time);
+        powerup_manager.handleCollisions(vehicle);
 
         // Update powerup renderers
-        for (auto& powerupRenderer : powerupRenderers) {
-            powerupRenderer->update();
+        for (auto& powerup_renderer : powerup_renderers) {
+            powerup_renderer->update();
         }
 
         // Update camera to follow vehicle
-        const std::array<float, 3> vehiclePosition = vehicle.getPosition();
-        const float vehicleRotation = vehicle.getRotation();
-        const float vehicleVelocity = vehicle.getVelocity();
-        const float driftAngle = vehicle.getDriftAngle();
-        sceneManager.updateCameraFollowTarget(vehiclePosition[0], vehiclePosition[1], vehiclePosition[2],
-                                              vehicleRotation, vehicle.isNitrousActive(), vehicleVelocity, driftAngle);
-        sceneManager.updateMinimapCamera(vehiclePosition[0], vehiclePosition[2]);
+        const std::array<float, 3> vehicle_position = vehicle.getPosition();
+        const float vehicle_rotation = vehicle.getRotation();
+        const float vehicle_velocity = vehicle.getVelocity();
+        const float drift_angle = vehicle.getDriftAngle();
+        scene_manager.updateCameraFollowTarget(vehicle_position[0], vehicle_position[1], vehicle_position[2],
+                                              vehicle_rotation, vehicle.isNitrousActive(), vehicle_velocity, drift_angle);
+        scene_manager.updateMinimapCamera(vehicle_position[0], vehicle_position[2]);
 
         // Update camera FOV based on speed and nitrous state (speed FOV effect)
-        sceneManager.updateCameraFOV(vehicle.isNitrousActive(), std::abs(vehicleVelocity));
+        scene_manager.updateCameraFOV(vehicle.isNitrousActive(), std::abs(vehicle_velocity));
 
         // Update audio
-        if (audioEnabled) {
-            audioManager.update(vehicle);
+        if (audio_enabled) {
+            audio_manager.update(vehicle);
         }
 
-        GLRenderer& glRenderer = sceneManager.getRenderer();
-        const WindowSize& windowSize = canvas.size();
+        GLRenderer& gl_renderer = scene_manager.getRenderer();
+        const WindowSize& window_size = canvas.size();
 
         // Render main view
-        glRenderer.setViewport(0, 0, windowSize.width(), windowSize.height());
-        glRenderer.setScissor(0, 0, windowSize.width(), windowSize.height());
-        glRenderer.setScissorTest(false);
-        sceneManager.getRenderer().render(sceneManager.getScene(), sceneManager.getCamera());
+        gl_renderer.setViewport(0, 0, window_size.width(), window_size.height());
+        gl_renderer.setScissor(0, 0, window_size.width(), window_size.height());
+        gl_renderer.setScissorTest(false);
+        scene_manager.getRenderer().render(scene_manager.getScene(), scene_manager.getCamera());
 
         // Render minimap in bottom-left corner
-        const int minimapX = MINIMAP_PADDING;
-        const int minimapY = windowSize.height() - MINIMAP_SIZE - MINIMAP_PADDING;
-        glRenderer.setViewport(minimapX, minimapY, MINIMAP_SIZE, MINIMAP_SIZE);
-        glRenderer.setScissor(minimapX, minimapY, MINIMAP_SIZE, MINIMAP_SIZE);
-        glRenderer.setScissorTest(true);
-        sceneManager.renderMinimap();
-        glRenderer.setScissorTest(false);
+        const int minimap_x = MINIMAP_PADDING;
+        const int minimap_y = window_size.height() - MINIMAP_SIZE - MINIMAP_PADDING;
+        gl_renderer.setViewport(minimap_x, minimap_y, MINIMAP_SIZE, MINIMAP_SIZE);
+        gl_renderer.setScissor(minimap_x, minimap_y, MINIMAP_SIZE, MINIMAP_SIZE);
+        gl_renderer.setScissorTest(true);
+        scene_manager.renderMinimap();
+        gl_renderer.setScissorTest(false);
 
         // Render UI overlay
-        glRenderer.setViewport(0, 0, windowSize.width(), windowSize.height());
-        uiManager.render(vehicle, windowSize);
+        gl_renderer.setViewport(0, 0, window_size.width(), window_size.height());
+        ui_manager.render(vehicle, window_size);
     });
 
     return 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <memory>
 
 // Forward declare miniaudio types
@@ -19,17 +20,17 @@ public:
     AudioManager& operator=(const AudioManager&) = delete;
 
     // Initialize audio engine and load sound files
-    bool initialize(const std::string& engineSoundPath);
+    [[nodiscard]] bool initialize(std::string_view engineSoundPath);
 
     // Update audio based on vehicle state
     void update(const Vehicle& vehicle);
 
 private:
-    float calculateEnginePitch(float velocity, float maxSpeed) const;
+    [[nodiscard]] float calculateEnginePitch(float velocity, float maxSpeed) const noexcept;
 
     struct AudioDeleter {
-        void operator()(ma_engine* engine) const;
-        void operator()(ma_sound* sound) const;
+        void operator()(ma_engine* engine) const noexcept;
+        void operator()(ma_sound* sound) const noexcept;
     };
 
     std::unique_ptr<ma_engine, AudioDeleter> engine_;

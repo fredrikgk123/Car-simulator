@@ -29,11 +29,11 @@ Obstacle::Obstacle(float x, float y, float z, ObstacleType type, WallOrientation
     }
 }
 
-ObstacleType Obstacle::getType() const {
+ObstacleType Obstacle::getType() const noexcept {
     return type_;
 }
 
-WallOrientation Obstacle::getOrientation() const {
+WallOrientation Obstacle::getOrientation() const noexcept {
     return orientation_;
 }
 

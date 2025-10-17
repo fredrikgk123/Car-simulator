@@ -11,40 +11,40 @@ public:
     Vehicle(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
     // Control methods
-    void accelerateForward();
-    void accelerateBackward();
-    void turn(float amount);
+    void accelerateForward() noexcept;
+    void accelerateBackward() noexcept;
+    void turn(float amount) noexcept;
 
     // Drift methods
-    void startDrift();
-    void stopDrift();
-    bool isDrifting() const;
+    void startDrift() noexcept;
+    void stopDrift() noexcept;
+    [[nodiscard]] bool isDrifting() const noexcept;
 
     // Nitrous methods
-    void activateNitrous();
-    void pickupNitrous();
-    bool hasNitrous() const;
-    bool isNitrousActive() const;
-    float getNitrousTimeRemaining() const;
+    void activateNitrous() noexcept;
+    void pickupNitrous() noexcept;
+    [[nodiscard]] bool hasNitrous() const noexcept;
+    [[nodiscard]] bool isNitrousActive() const noexcept;
+    [[nodiscard]] float getNitrousTimeRemaining() const noexcept;
 
     // Override from GameObject
     void update(float deltaTime) override;
     void reset() override;
 
     // Getters
-    float getVelocity() const;
-    float getMaxSpeed() const;
-    float getDriftAngle() const;  // Get current drift angle for camera
+    [[nodiscard]] float getVelocity() const noexcept;
+    [[nodiscard]] float getMaxSpeed() const noexcept;
+    [[nodiscard]] float getDriftAngle() const noexcept;  // Get current drift angle for camera
 
     // Setters for collision response
-    void setVelocity(float velocity);
+    void setVelocity(float velocity) noexcept;
 
     // Callback for resetting camera to orbit
-    void setResetCameraCallback(std::function<void()> &&callback);
+    void setResetCameraCallback(std::function<void()> &&callback) noexcept;
 
 private:
     // Calculate turn rate based on current speed
-    float calculateTurnRate() const;
+    [[nodiscard]] float calculateTurnRate() const noexcept;
 
     float velocity_;                          // Current speed
     float acceleration_;                      // Current acceleration

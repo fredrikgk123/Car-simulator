@@ -56,12 +56,13 @@ void PowerupManager::handleCollisions(Vehicle& vehicle) {
     }
 }
 
-void PowerupManager::reset() {
+void PowerupManager::reset() noexcept {
+    // Respawn all powerups by setting them to active
     for (auto& powerup : powerups_) {
-        powerup->reset();
+        powerup->setActive(true);
     }
 }
 
-const std::vector<std::unique_ptr<Powerup>>& PowerupManager::getPowerups() const {
+const std::vector<std::unique_ptr<Powerup>>& PowerupManager::getPowerups() const noexcept {
     return powerups_;
 }

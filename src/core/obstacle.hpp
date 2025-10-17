@@ -20,8 +20,8 @@ class Obstacle : public GameObject {
 public:
     Obstacle(float x, float y, float z, ObstacleType type, WallOrientation orientation = WallOrientation::HORIZONTAL);
 
-    ObstacleType getType() const;
-    WallOrientation getOrientation() const;
+    [[nodiscard]] ObstacleType getType() const noexcept;
+    [[nodiscard]] WallOrientation getOrientation() const noexcept;
 
     // Override from GameObject - obstacles are static, no update needed
     void update(float deltaTime) override;

@@ -14,9 +14,9 @@ public:
     SceneManager();
 
     // Scene component access
-    threepp::Scene& getScene();
-    threepp::Camera& getCamera();
-    threepp::GLRenderer& getRenderer();
+    [[nodiscard]] threepp::Scene& getScene() noexcept;
+    [[nodiscard]] threepp::Camera& getCamera() noexcept;
+    [[nodiscard]] threepp::GLRenderer& getRenderer() noexcept;
 
     // Setup methods
     void setupLighting();
@@ -31,9 +31,9 @@ public:
     void updateCameraFOV(bool nitrousActive, float vehicleVelocity = 0.0f);  // Dynamic FOV for speed effect (speed-based)
 
     // Camera mode switching
-    void setCameraMode(CameraMode mode);
-    [[nodiscard]] CameraMode getCameraMode() const;
-    void toggleCameraMode();
+    void setCameraMode(CameraMode mode) noexcept;
+    [[nodiscard]] CameraMode getCameraMode() const noexcept;
+    void toggleCameraMode() noexcept;
 
     // Rendering
     void render();

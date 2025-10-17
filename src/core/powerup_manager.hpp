@@ -18,10 +18,10 @@ public:
     void handleCollisions(Vehicle& vehicle);
 
     // Reset all powerups to active state
-    void reset();
+    void reset() noexcept;
 
     // Get all powerups (for rendering)
-    const std::vector<std::unique_ptr<Powerup>>& getPowerups() const;
+    [[nodiscard]] const std::vector<std::unique_ptr<Powerup>>& getPowerups() const noexcept;
 
 private:
     void generatePowerups(int count, float playAreaSize);
@@ -29,4 +29,3 @@ private:
     std::vector<std::unique_ptr<Powerup>> powerups_;
     std::mt19937 randomEngine_;
 };
-

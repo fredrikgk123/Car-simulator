@@ -15,21 +15,21 @@ public:
     virtual void reset();
 
     // Getters
-    const std::array<float, 3>& getPosition() const;
-    float getRotation() const;
-    const std::array<float, 3>& getSize() const;
-    bool isActive() const;
+    [[nodiscard]] const std::array<float, 3>& getPosition() const noexcept;
+    [[nodiscard]] float getRotation() const noexcept;
+    [[nodiscard]] const std::array<float, 3>& getSize() const noexcept;
+    [[nodiscard]] bool isActive() const noexcept;
 
     // Setters
-    void setPosition(float x, float y, float z);
-    void setRotation(float rotation);
-    void setActive(bool active);
+    void setPosition(float x, float y, float z) noexcept;
+    void setRotation(float rotation) noexcept;
+    void setActive(bool active) noexcept;
 
     // Collision detection - circle-based for simplicity and consistency
-    bool checkCircleCollision(const GameObject& other, float& overlapDistance, float& normalX, float& normalZ) const;
+    [[nodiscard]] bool checkCircleCollision(const GameObject& other, float& overlapDistance, float& normalX, float& normalZ) const noexcept;
 
     // Simple collision check without detailed information
-    bool intersects(const GameObject& other) const;
+    [[nodiscard]] bool intersects(const GameObject& other) const noexcept;
 
 protected:
     // Position and orientation

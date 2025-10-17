@@ -65,15 +65,15 @@ SceneManager::SceneManager()
     renderer_->shadowMap().enabled = true;
 }
 
-Scene& SceneManager::getScene() {
+Scene& SceneManager::getScene() noexcept {
     return *scene_;
 }
 
-Camera& SceneManager::getCamera() {
+Camera& SceneManager::getCamera() noexcept {
     return *camera_;
 }
 
-GLRenderer& SceneManager::getRenderer() {
+GLRenderer& SceneManager::getRenderer() noexcept {
     return *renderer_;
 }
 
@@ -238,16 +238,15 @@ void SceneManager::setupMinimapCamera(float aspectRatio) {
     minimapCamera_->position.set(0, MINIMAP_HEIGHT, 0);
 }
 
-void SceneManager::setCameraMode(CameraMode mode) {
+void SceneManager::setCameraMode(CameraMode mode) noexcept {
     cameraMode_ = mode;
 }
 
-CameraMode SceneManager::getCameraMode() const {
+CameraMode SceneManager::getCameraMode() const noexcept {
     return cameraMode_;
 }
 
-void SceneManager::toggleCameraMode() {
-    // Cycle between: FOLLOW -> HOOD -> FOLLOW
+void SceneManager::toggleCameraMode() noexcept {
     cameraMode_ = (cameraMode_ == CameraMode::FOLLOW) ? CameraMode::HOOD : CameraMode::FOLLOW;
 }
 

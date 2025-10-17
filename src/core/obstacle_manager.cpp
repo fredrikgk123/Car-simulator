@@ -14,116 +14,116 @@ namespace {
     constexpr float MIN_DISTANCE_BETWEEN_TREES = 8.0f;  // Prevent trees from overlapping
 }
 
-ObstacleManager::ObstacleManager(float playAreaSize, int treeCount)
+ObstacleManager::ObstacleManager(float play_area_size, int tree_count)
     : randomEngine_(std::random_device{}()) {
-    generateWalls(playAreaSize);
-    generateTrees(treeCount, playAreaSize);
+    generateWalls(play_area_size);
+    generateTrees(tree_count, play_area_size);
 }
 
-void ObstacleManager::generateWalls(float playAreaSize) {
-    const float halfSize = playAreaSize / 2.0f;
-    const int segmentsPerSide = static_cast<int>(playAreaSize / WALL_SEGMENT_LENGTH);
+void ObstacleManager::generateWalls(float play_area_size) {
+    const float half_size = play_area_size / 2.0f;
+    const int segments_per_side = static_cast<int>(play_area_size / WALL_SEGMENT_LENGTH);
 
     // Generate continuous walls by placing segments with proper orientation
-    for (int i = 0; i < segmentsPerSide; ++i) {
-        float offset = -halfSize + (i * WALL_SEGMENT_LENGTH) + (WALL_SEGMENT_LENGTH / 2.0f);
+    for (int i = 0; i < segments_per_side; ++i) {
+        float offset = -half_size + (i * WALL_SEGMENT_LENGTH) + (WALL_SEGMENT_LENGTH / 2.0f);
 
-        // North wall (z = -halfSize) - horizontal orientation
-        obstacles_.push_back(std::make_unique<Obstacle>(offset, WALL_HEIGHT, -halfSize, ObstacleType::WALL, WallOrientation::HORIZONTAL));
+        // North wall (z = -half_size) - horizontal orientation
+        obstacles_.push_back(std::make_unique<Obstacle>(offset, WALL_HEIGHT, -half_size, ObstacleType::WALL, WallOrientation::HORIZONTAL));
 
-        // South wall (z = +halfSize) - horizontal orientation
-        obstacles_.push_back(std::make_unique<Obstacle>(offset, WALL_HEIGHT, halfSize, ObstacleType::WALL, WallOrientation::HORIZONTAL));
+        // South wall (z = +half_size) - horizontal orientation
+        obstacles_.push_back(std::make_unique<Obstacle>(offset, WALL_HEIGHT, half_size, ObstacleType::WALL, WallOrientation::HORIZONTAL));
 
-        // West wall (x = -halfSize) - vertical orientation
-        obstacles_.push_back(std::make_unique<Obstacle>(-halfSize, WALL_HEIGHT, offset, ObstacleType::WALL, WallOrientation::VERTICAL));
+        // West wall (x = -half_size) - vertical orientation
+        obstacles_.push_back(std::make_unique<Obstacle>(-half_size, WALL_HEIGHT, offset, ObstacleType::WALL, WallOrientation::VERTICAL));
 
-        // East wall (x = +halfSize) - vertical orientation
-        obstacles_.push_back(std::make_unique<Obstacle>(halfSize, WALL_HEIGHT, offset, ObstacleType::WALL, WallOrientation::VERTICAL));
+        // East wall (x = +half_size) - vertical orientation
+        obstacles_.push_back(std::make_unique<Obstacle>(half_size, WALL_HEIGHT, offset, ObstacleType::WALL, WallOrientation::VERTICAL));
     }
 }
 
-void ObstacleManager::generateTrees(int count, float playAreaSize) {
-    const float halfSize = playAreaSize / 2.0f;
-    const float minPos = -halfSize + MIN_TREE_DISTANCE_FROM_WALL;
-    const float maxPos = halfSize - MIN_TREE_DISTANCE_FROM_WALL;
+void ObstacleManager::generateTrees(int count, float play_area_size) {
+    const float half_size = play_area_size / 2.0f;
+    const float min_pos = -half_size + MIN_TREE_DISTANCE_FROM_WALL;
+    const float max_pos = half_size - MIN_TREE_DISTANCE_FROM_WALL;
 
-    std::uniform_real_distribution<float> posDistribution(minPos, maxPos);
+    std::uniform_real_distribution<float> pos_distribution(min_pos, max_pos);
 
-    int treesPlaced = 0;
+    int trees_placed = 0;
     int attempts = 0;
-    const int maxAttempts = count * 10;  // Prevent infinite loop
+    const int max_attempts = count * 10;  // Prevent infinite loop
 
-    while (treesPlaced < count && attempts < maxAttempts) {
+    while (trees_placed < count && attempts < max_attempts) {
         attempts++;
 
-        float x = posDistribution(randomEngine_);
-        float z = posDistribution(randomEngine_);
+        float x = pos_distribution(randomEngine_);
+        float z = pos_distribution(randomEngine_);
 
         // Check distance from center (spawn point)
-        float distanceFromCenter = std::sqrt(x * x + z * z);
-        if (distanceFromCenter < MIN_TREE_DISTANCE_FROM_CENTER) {
+        float distance_from_center = std::sqrt(x * x + z * z);
+        if (distance_from_center < MIN_TREE_DISTANCE_FROM_CENTER) {
             continue;
         }
 
         // Check distance from other trees
-        bool tooClose = false;
+        bool too_close = false;
         for (const auto& obstacle : obstacles_) {
             if (obstacle->getType() == ObstacleType::TREE) {
                 const auto& pos = obstacle->getPosition();
-                float dx = x - pos[0];
-                float dz = z - pos[2];
-                float distance = std::sqrt(dx * dx + dz * dz);
+                float distance_x = x - pos[0];
+                float distance_z = z - pos[2];
+                float distance = std::sqrt(distance_x * distance_x + distance_z * distance_z);
 
                 if (distance < MIN_DISTANCE_BETWEEN_TREES) {
-                    tooClose = true;
+                    too_close = true;
                     break;
                 }
             }
         }
 
-        if (!tooClose) {
+        if (!too_close) {
             obstacles_.push_back(std::make_unique<Obstacle>(x, TREE_HEIGHT, z, ObstacleType::TREE));
-            treesPlaced++;
+            trees_placed++;
         }
     }
 }
 
 void ObstacleManager::handleCollisions(Vehicle& vehicle) {
-    const auto& vehiclePos = vehicle.getPosition();
+    const auto& vehicle_pos = vehicle.getPosition();
 
     // Get vehicle radius for collision (average of width and length)
-    const auto& vehicleSize = vehicle.getSize();
-    float vehicleRadius = (vehicleSize[0] + vehicleSize[2]) / 4.0f;
+    const auto& vehicle_size = vehicle.getSize();
+    float vehicle_radius = (vehicle_size[0] + vehicle_size[2]) / 4.0f;
 
     for (const auto& obstacle : obstacles_) {
-        const auto& obstaclePos = obstacle->getPosition();
-        const auto& obstacleSize = obstacle->getSize();
+        const auto& obstacle_pos = obstacle->getPosition();
+        const auto& obstacle_size = obstacle->getSize();
 
         // Get obstacle radius
-        float obstacleRadius = (obstacleSize[0] + obstacleSize[2]) / 4.0f;
+        float obstacle_radius = (obstacle_size[0] + obstacle_size[2]) / 4.0f;
 
         // Calculate distance between centers
-        float dx = vehiclePos[0] - obstaclePos[0];
-        float dz = vehiclePos[2] - obstaclePos[2];
-        float distance = std::sqrt(dx * dx + dz * dz);
+        float distance_x = vehicle_pos[0] - obstacle_pos[0];
+        float distance_z = vehicle_pos[2] - obstacle_pos[2];
+        float distance = std::sqrt(distance_x * distance_x + distance_z * distance_z);
 
         // Collision threshold = sum of radii
-        float collisionThreshold = vehicleRadius + obstacleRadius;
+        float collision_threshold = vehicle_radius + obstacle_radius;
 
         // If distance is below threshold, we have a collision
-        if (distance < collisionThreshold) {
+        if (distance < collision_threshold) {
             // Calculate how much we need to push out
-            float penetration = collisionThreshold - distance;
+            float penetration = collision_threshold - distance;
 
             // Calculate push direction (away from obstacle)
-            float pushDirX = dx / distance;
-            float pushDirZ = dz / distance;
+            float push_dir_x = distance_x / distance;
+            float push_dir_z = distance_z / distance;
 
             // Push vehicle out to exactly the threshold distance
             vehicle.setPosition(
-                obstaclePos[0] + pushDirX * collisionThreshold,
-                vehiclePos[1],
-                obstaclePos[2] + pushDirZ * collisionThreshold
+                obstacle_pos[0] + push_dir_x * collision_threshold,
+                vehicle_pos[1],
+                obstacle_pos[2] + push_dir_z * collision_threshold
             );
 
             // Stop the vehicle
@@ -135,11 +135,11 @@ void ObstacleManager::handleCollisions(Vehicle& vehicle) {
     }
 }
 
-void ObstacleManager::reset() {
+void ObstacleManager::reset() noexcept {
     // Obstacles are static, no reset needed
     // But method exists for consistency with other managers
 }
 
-const std::vector<std::unique_ptr<Obstacle>>& ObstacleManager::getObstacles() const {
+const std::vector<std::unique_ptr<Obstacle>>& ObstacleManager::getObstacles() const noexcept {
     return obstacles_;
 }

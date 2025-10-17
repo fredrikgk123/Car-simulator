@@ -26,6 +26,6 @@ void Powerup::update(float deltaTime) {
     }
 }
 
-PowerupType Powerup::getType() const {
+PowerupType Powerup::getType() const noexcept {
     return type_;
 }

@@ -1,5 +1,6 @@
 #include "vehicle.hpp"
 #include <cmath>
+#include <numbers>
 
 // Anonymous namespace - these constants are LOCAL to this file only (NOT global!)
 namespace {
@@ -30,6 +31,10 @@ namespace {
     constexpr float DRIFT_ANGLE_MULTIPLIER = 1.2f;       // Drift angle accumulation rate
     constexpr float DRIFT_EXIT_RETENTION = 0.5f;         // How much drift angle to keep when exiting drift
     constexpr float DRIFT_DECAY_RATE = 0.95f;            // Drift angle decay per frame
+
+    constexpr float PI = std::numbers::pi_v<float>;
+    constexpr float TWO_PI = 2.0f * PI;
+    constexpr float INITIAL_ROTATION_RADIANS = PI;       // 180 degrees (π radians) for minimap alignment
 }
 
 Vehicle::Vehicle(float x, float y, float z)
@@ -47,70 +52,70 @@ Vehicle::Vehicle(float x, float y, float z)
     size_[2] = VEHICLE_LENGTH;
 
     // Set initial rotation to 180 degrees (π radians) so minimap direction matches
-    rotation_ = static_cast<float>(M_PI);
-    initialRotation_ = static_cast<float>(M_PI);
+    rotation_ = INITIAL_ROTATION_RADIANS;
+    initialRotation_ = INITIAL_ROTATION_RADIANS;
 }
 
-void Vehicle::accelerateForward() {
+void Vehicle::accelerateForward() noexcept {
     acceleration_ = nitrousActive_ ? NITROUS_ACCELERATION : FORWARD_ACCELERATION;
 }
 
-void Vehicle::accelerateBackward() {
+void Vehicle::accelerateBackward() noexcept {
     acceleration_ = BACKWARD_ACCELERATION;
 }
 
-void Vehicle::turn(float amount) {
-    float turnRate = calculateTurnRate();
-    rotation_ += amount * TURN_SPEED * turnRate;
+void Vehicle::turn(float amount) noexcept {
+    float turn_rate = calculateTurnRate();
+    rotation_ += amount * TURN_SPEED * turn_rate;
 
     // When drifting, allow the car to build up a drift angle
     if (isDrifting_) {
         // Accumulate drift angle more aggressively
-        driftAngle_ += amount * TURN_SPEED * turnRate * DRIFT_ANGLE_MULTIPLIER;
+        driftAngle_ += amount * TURN_SPEED * turn_rate * DRIFT_ANGLE_MULTIPLIER;
 
         // Increased max drift angle to ~60 degrees for more dramatic slides
-        const float MAX_DRIFT_ANGLE = static_cast<float>(M_PI) / 3.0f;
+        const float MAX_DRIFT_ANGLE = PI / 3.0f;  // 60 degrees
         driftAngle_ = std::clamp(driftAngle_, -MAX_DRIFT_ANGLE, MAX_DRIFT_ANGLE);
     }
 
     // Normalize rotation to [0, 2π]
-    rotation_ = std::fmod(rotation_, 2.0f * static_cast<float>(M_PI));
+    rotation_ = std::fmod(rotation_, TWO_PI);
     if (rotation_ < 0.0f) {
-        rotation_ += 2.0f * static_cast<float>(M_PI);
+        rotation_ += TWO_PI;
     }
 }
 
-float Vehicle::calculateTurnRate() const {
-    const float absoluteVelocity = std::abs(velocity_);
+float Vehicle::calculateTurnRate() const noexcept {
+    const float absolute_velocity = std::abs(velocity_);
 
     // Don't turn if completely stopped
-    if (absoluteVelocity < MIN_SPEED_THRESHOLD) {
+    if (absolute_velocity < MIN_SPEED_THRESHOLD) {
         return 0.0f;
     }
 
     // Extremely low speeds (0.1-0.3 m/s / ~0.4-1.1 km/h): very minimal turning
-    if (absoluteVelocity < TURN_RATE_MIN_SPEED) {
-        return 0.05f + ((absoluteVelocity - MIN_SPEED_THRESHOLD) / 0.2f) * 0.1f;
+    if (absolute_velocity < TURN_RATE_MIN_SPEED) {
+        return 0.05f + ((absolute_velocity - MIN_SPEED_THRESHOLD) / 0.2f) * 0.1f;
     }
 
     // Very low speeds (0.3-3 m/s / ~1.1-11 km/h): minimal but usable turning
-    if (absoluteVelocity < TURN_RATE_LOW_SPEED) {
-        return 0.15f + ((absoluteVelocity - TURN_RATE_MIN_SPEED) / 2.7f) * 0.35f;
+    if (absolute_velocity < TURN_RATE_LOW_SPEED) {
+        return 0.15f + ((absolute_velocity - TURN_RATE_MIN_SPEED) / 2.7f) * 0.35f;
     }
 
     // Low to medium speeds (3-15 m/s / ~11-54 km/h): good turning capability
-    if (absoluteVelocity < TURN_RATE_MEDIUM_SPEED) {
-        return 0.5f + ((absoluteVelocity - TURN_RATE_LOW_SPEED) / 12.0f) * 0.5f;
+    if (absolute_velocity < TURN_RATE_MEDIUM_SPEED) {
+        return 0.5f + ((absolute_velocity - TURN_RATE_LOW_SPEED) / 12.0f) * 0.5f;
     }
 
     // High speeds (15+ m/s / 54+ km/h): reduced turn rate for realism
-    const float speedRatio = (absoluteVelocity - TURN_RATE_MEDIUM_SPEED) / (MAX_SPEED - TURN_RATE_MEDIUM_SPEED);
-    const float turnRate = 1.0f - (speedRatio * 0.4f);  // Reduces to 60% at max speed
+    const float speed_ratio = (absolute_velocity - TURN_RATE_MEDIUM_SPEED) / (MAX_SPEED - TURN_RATE_MEDIUM_SPEED);
+    const float turn_rate = 1.0f - (speed_ratio * 0.4f);  // Reduces to 60% at max speed
 
-    return std::clamp(turnRate, 0.6f, 1.0f);
+    return std::clamp(turn_rate, 0.6f, 1.0f);
 }
 
-void Vehicle::activateNitrous() {
+void Vehicle::activateNitrous() noexcept {
     if (hasNitrous_ && !nitrousActive_) {
         nitrousActive_ = true;
         nitrousTimeRemaining_ = NITROUS_DURATION;
@@ -118,33 +123,33 @@ void Vehicle::activateNitrous() {
     }
 }
 
-void Vehicle::startDrift() {
+void Vehicle::startDrift() noexcept {
     isDrifting_ = true;
 }
 
-void Vehicle::stopDrift() {
+void Vehicle::stopDrift() noexcept {
     isDrifting_ = false;
     // Keep more of the drift angle when exiting for a smoother transition
     driftAngle_ *= DRIFT_EXIT_RETENTION;
 }
 
-bool Vehicle::isDrifting() const {
+bool Vehicle::isDrifting() const noexcept {
     return isDrifting_;
 }
 
-void Vehicle::pickupNitrous() {
+void Vehicle::pickupNitrous() noexcept {
     hasNitrous_ = true;
 }
 
-bool Vehicle::hasNitrous() const {
+bool Vehicle::hasNitrous() const noexcept {
     return hasNitrous_;
 }
 
-bool Vehicle::isNitrousActive() const {
+bool Vehicle::isNitrousActive() const noexcept {
     return nitrousActive_;
 }
 
-float Vehicle::getNitrousTimeRemaining() const {
+float Vehicle::getNitrousTimeRemaining() const noexcept {
     return nitrousTimeRemaining_;
 }
 
@@ -162,26 +167,26 @@ void Vehicle::update(float deltaTime) {
     velocity_ += acceleration_ * deltaTime;
 
     // Apply friction (less friction while drifting)
-    float frictionCoefficient = isDrifting_ ? DRIFT_FRICTION_COEFFICIENT : FRICTION_COEFFICIENT;
-    velocity_ *= frictionCoefficient;
+    float friction_coefficient = isDrifting_ ? DRIFT_FRICTION_COEFFICIENT : FRICTION_COEFFICIENT;
+    velocity_ *= friction_coefficient;
 
     // Clamp velocity to max speeds (higher during nitrous)
-    float currentMaxSpeed = nitrousActive_ ? NITROUS_MAX_SPEED : MAX_SPEED;
-    velocity_ = std::clamp(velocity_, -MAX_REVERSE_SPEED, currentMaxSpeed);
+    float current_max_speed = nitrousActive_ ? NITROUS_MAX_SPEED : MAX_SPEED;
+    velocity_ = std::clamp(velocity_, -MAX_REVERSE_SPEED, current_max_speed);
 
     // When drifting, car moves in a direction between facing and drift angle
-    float movementAngle = rotation_;
+    float movement_angle = rotation_;
     if (isDrifting_) {
-        movementAngle = rotation_ - driftAngle_;
+        movement_angle = rotation_ - driftAngle_;
         // Gradually reduce drift angle over time (self-correcting)
         driftAngle_ *= DRIFT_DECAY_RATE;
     }
 
     // Update position based on velocity and movement angle
-    const float deltaX = std::sin(movementAngle) * velocity_ * deltaTime;
-    const float deltaZ = std::cos(movementAngle) * velocity_ * deltaTime;
-    position_[0] += deltaX;
-    position_[2] += deltaZ;
+    const float delta_x = std::sin(movement_angle) * velocity_ * deltaTime;
+    const float delta_z = std::cos(movement_angle) * velocity_ * deltaTime;
+    position_[0] += delta_x;
+    position_[2] += delta_z;
 
     // Reset acceleration (must be reapplied each frame)
     acceleration_ = 0.0f;
@@ -203,22 +208,22 @@ void Vehicle::reset() {
     }
 }
 
-void Vehicle::setResetCameraCallback(std::function<void()>&& callback) {
+void Vehicle::setResetCameraCallback(std::function<void()>&& callback) noexcept {
     resetCameraCallback_ = std::move(callback);
 }
 
-float Vehicle::getVelocity() const {
+float Vehicle::getVelocity() const noexcept {
     return velocity_;
 }
 
-float Vehicle::getMaxSpeed() const {
+float Vehicle::getMaxSpeed() const noexcept {
     return MAX_SPEED;
 }
 
-void Vehicle::setVelocity(float velocity) {
+void Vehicle::setVelocity(float velocity) noexcept {
     velocity_ = velocity;
 }
 
-float Vehicle::getDriftAngle() const {
+float Vehicle::getDriftAngle() const noexcept {
     return driftAngle_;
 }

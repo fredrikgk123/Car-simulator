@@ -18,10 +18,10 @@ public:
     void handleCollisions(Vehicle& vehicle);
 
     // Access to obstacles for rendering
-    const std::vector<std::unique_ptr<Obstacle>>& getObstacles() const;
+    [[nodiscard]] const std::vector<std::unique_ptr<Obstacle>>& getObstacles() const noexcept;
 
     // Reset is not needed for static obstacles, but included for consistency
-    void reset();
+    void reset() noexcept;
 
 private:
     void generateWalls(float playAreaSize);
@@ -30,4 +30,3 @@ private:
     std::vector<std::unique_ptr<Obstacle>> obstacles_;
     std::mt19937 randomEngine_;
 };
-

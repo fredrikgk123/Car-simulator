@@ -12,7 +12,7 @@ public:
 
     void update(float deltaTime) override;
 
-    PowerupType getType() const;
+    [[nodiscard]] PowerupType getType() const noexcept;
 
 private:
     PowerupType type_;

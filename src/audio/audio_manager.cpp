@@ -33,14 +33,14 @@ namespace {
 }
 
 // Implement custom deleters
-void AudioManager::AudioDeleter::operator()(ma_engine* engine) const {
+void AudioManager::AudioDeleter::operator()(ma_engine* engine) const noexcept {
     if (engine) {
         ma_engine_uninit(engine);
         delete engine;
     }
 }
 
-void AudioManager::AudioDeleter::operator()(ma_sound* sound) const {
+void AudioManager::AudioDeleter::operator()(ma_sound* sound) const noexcept {
     if (sound) {
         ma_sound_uninit(sound);
         delete sound;
@@ -58,7 +58,7 @@ AudioManager::AudioManager()
 
 AudioManager::~AudioManager() = default;
 
-bool AudioManager::initialize(const std::string& engineSoundPath) {
+bool AudioManager::initialize(std::string_view engineSoundPath) {
     // Initialize audio engine - use unique_ptr from the start for exception safety
     std::unique_ptr<ma_engine, AudioDeleter> engine(new ma_engine());
     ma_result result = ma_engine_init(nullptr, engine.get());
@@ -72,7 +72,7 @@ bool AudioManager::initialize(const std::string& engineSoundPath) {
 
     // Load engine sound file - use unique_ptr from the start
     std::unique_ptr<ma_sound, AudioDeleter> sound(new ma_sound());
-    result = ma_sound_init_from_file(engine_.get(), engineSoundPath.c_str(),
+    result = ma_sound_init_from_file(engine_.get(), engineSoundPath.data(),
                                      MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION,
                                      nullptr, nullptr, sound.get());
 
@@ -165,7 +165,7 @@ void AudioManager::update(const Vehicle& vehicle) {
     }
 }
 
-float AudioManager::calculateEnginePitch(float velocity, float maxSpeed) const {
+float AudioManager::calculateEnginePitch(float velocity, float maxSpeed) const noexcept {
     float speedRatio = std::min(velocity / maxSpeed, 1.0f);
 
     // Square root creates realistic RPM curve
