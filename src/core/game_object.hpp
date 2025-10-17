@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <string>
 
 // Base class for all game objects (vehicles, powerups, obstacles, etc.)
 class GameObject {
@@ -26,7 +25,10 @@ public:
     void setRotation(float rotation);
     void setActive(bool active);
 
-    // Collision detection helper
+    // Collision detection - circle-based for simplicity and consistency
+    bool checkCircleCollision(const GameObject& other, float& overlapDistance, float& normalX, float& normalZ) const;
+
+    // Simple collision check without detailed information
     bool intersects(const GameObject& other) const;
 
 protected:
@@ -34,11 +36,11 @@ protected:
     std::array<float, 3> position_;
     std::array<float, 3> initialPosition_;
     float rotation_;
-    float initialRotation_;  // Store initial rotation for reset
+    float initialRotation_;
 
     // Size for collision detection (width, height, length)
     std::array<float, 3> size_;
 
-    // Active state (for object pooling and visibility)
+    // Active state
     bool active_;
 };

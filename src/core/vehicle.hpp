@@ -34,6 +34,7 @@ public:
     // Getters
     float getVelocity() const;
     float getMaxSpeed() const;
+    float getDriftAngle() const;  // Get current drift angle for camera
 
     // Setters for collision response
     void setVelocity(float velocity);

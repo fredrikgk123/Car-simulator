@@ -26,13 +26,13 @@ public:
     void setupMinimapCamera(float aspectRatio);
 
     // Camera control
-    void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation, bool nitrousActive = false);
+    void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation, bool nitrousActive = false, float vehicleVelocity = 0.0f, float driftAngle = 0.0f);
     void updateMinimapCamera(float targetX, float targetZ);
-    void updateCameraFOV(bool nitrousActive);  // Dynamic FOV for speed effect
+    void updateCameraFOV(bool nitrousActive, float vehicleVelocity = 0.0f);  // Dynamic FOV for speed effect (speed-based)
 
     // Camera mode switching
     void setCameraMode(CameraMode mode);
-    CameraMode getCameraMode() const;
+    [[nodiscard]] CameraMode getCameraMode() const;
     void toggleCameraMode();
 
     // Rendering
@@ -68,4 +68,7 @@ private:
     float currentLookAtX_;
     float currentLookAtY_;
     float currentLookAtZ_;
+
+    // Drift camera state
+    float driftCameraOffset_;  // Current side offset for drift camera
 };

@@ -218,3 +218,7 @@ float Vehicle::getMaxSpeed() const {
 void Vehicle::setVelocity(float velocity) {
     velocity_ = velocity;
 }
+
+float Vehicle::getDriftAngle() const {
+    return driftAngle_;
+}

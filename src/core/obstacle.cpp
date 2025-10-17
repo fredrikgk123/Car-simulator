@@ -6,7 +6,7 @@ namespace {
     constexpr float WALL_HEIGHT = 5.0f;  // Height of wall
     constexpr float WALL_THICKNESS = 2.0f;   // Thickness of wall
 
-    constexpr float TREE_TRUNK_RADIUS = 0.5f;  // Reduced from 0.8f for smaller hitbox
+    constexpr float TREE_COLLISION_RADIUS = 0.5f;  // Small hitbox for easier navigation
     constexpr float TREE_HEIGHT = 6.0f;
 }
 
@@ -25,7 +25,7 @@ Obstacle::Obstacle(float x, float y, float z, ObstacleType type, WallOrientation
         }
     } else if (type_ == ObstacleType::TREE) {
         // Use smaller diameter for collision detection - easier to navigate
-        size_ = {TREE_TRUNK_RADIUS * 2.0f, TREE_HEIGHT, TREE_TRUNK_RADIUS * 2.0f};
+        size_ = {TREE_COLLISION_RADIUS * 2.0f, TREE_HEIGHT, TREE_COLLISION_RADIUS * 2.0f};
     }
 }
 

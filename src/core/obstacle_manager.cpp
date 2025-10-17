@@ -90,41 +90,47 @@ void ObstacleManager::generateTrees(int count, float playAreaSize) {
 
 void ObstacleManager::handleCollisions(Vehicle& vehicle) {
     const auto& vehiclePos = vehicle.getPosition();
-    const auto& vehicleSize = vehicle.getSize();
 
-    constexpr float COLLISION_BUFFER = 0.05f;  // Small buffer to prevent re-collision jitter
+    // Get vehicle radius for collision (average of width and length)
+    const auto& vehicleSize = vehicle.getSize();
+    float vehicleRadius = (vehicleSize[0] + vehicleSize[2]) / 4.0f;
 
     for (const auto& obstacle : obstacles_) {
-        if (vehicle.intersects(*obstacle)) {
-            // Simple collision response: push vehicle away from obstacle
-            const auto& obstaclePos = obstacle->getPosition();
-            const auto& obstacleSize = obstacle->getSize();
+        const auto& obstaclePos = obstacle->getPosition();
+        const auto& obstacleSize = obstacle->getSize();
 
-            // Calculate overlap on each axis
-            float dx = vehiclePos[0] - obstaclePos[0];
-            float dz = vehiclePos[2] - obstaclePos[2];
+        // Get obstacle radius
+        float obstacleRadius = (obstacleSize[0] + obstacleSize[2]) / 4.0f;
 
-            // Calculate penetration depth
-            float overlapX = (vehicleSize[0] + obstacleSize[0]) / 2.0f - std::abs(dx);
-            float overlapZ = (vehicleSize[2] + obstacleSize[2]) / 2.0f - std::abs(dz);
+        // Calculate distance between centers
+        float dx = vehiclePos[0] - obstaclePos[0];
+        float dz = vehiclePos[2] - obstaclePos[2];
+        float distance = std::sqrt(dx * dx + dz * dz);
 
-            // Only resolve collision if there's actual overlap
-            if (overlapX > 0 && overlapZ > 0) {
-                // Push along axis with smallest overlap (+ buffer to prevent jitter)
-                if (overlapX < overlapZ) {
-                    // Push along X axis
-                    float pushX = (dx > 0) ? (overlapX + COLLISION_BUFFER) : -(overlapX + COLLISION_BUFFER);
-                    vehicle.setPosition(vehiclePos[0] + pushX, vehiclePos[1], vehiclePos[2]);
-                } else {
-                    // Push along Z axis
-                    float pushZ = (dz > 0) ? (overlapZ + COLLISION_BUFFER) : -(overlapZ + COLLISION_BUFFER);
-                    vehicle.setPosition(vehiclePos[0], vehiclePos[1], vehiclePos[2] + pushZ);
-                }
+        // Collision threshold = sum of radii
+        float collisionThreshold = vehicleRadius + obstacleRadius;
 
-                // Reduce velocity instead of stopping completely for smoother collision
-                float currentVelocity = vehicle.getVelocity();
-                vehicle.setVelocity(currentVelocity * 0.3f);  // Reduce to 30% on collision
-            }
+        // If distance is below threshold, we have a collision
+        if (distance < collisionThreshold) {
+            // Calculate how much we need to push out
+            float penetration = collisionThreshold - distance;
+
+            // Calculate push direction (away from obstacle)
+            float pushDirX = dx / distance;
+            float pushDirZ = dz / distance;
+
+            // Push vehicle out to exactly the threshold distance
+            vehicle.setPosition(
+                obstaclePos[0] + pushDirX * collisionThreshold,
+                vehiclePos[1],
+                obstaclePos[2] + pushDirZ * collisionThreshold
+            );
+
+            // Stop the vehicle
+            vehicle.setVelocity(0.0f);
+
+            // Only process first collision per frame
+            break;
         }
     }
 }

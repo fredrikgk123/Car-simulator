@@ -1,12 +1,13 @@
 #include "vehicle_renderer.hpp"
 #include <threepp/loaders/OBJLoader.hpp>
 #include <iostream>
+#include <algorithm>
 
 using namespace threepp;
 
 namespace {
     constexpr float MODEL_SCALE = 0.5f;          // Scale factor for loaded 3D models
-    constexpr float MODEL_VERTICAL_OFFSET = 0.5f; // Lift car above ground to prevent sinking
+    constexpr float MODEL_VERTICAL_OFFSET = 0.5f; // Lift car above ground
 }
 
 VehicleRenderer::VehicleRenderer(Scene& scene, const Vehicle& vehicle)
@@ -36,7 +37,7 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
         loadedGroup->scale.setScalar(MODEL_SCALE);
         loadedGroup->position.y = MODEL_VERTICAL_OFFSET;
 
-        // Enable shadows for all meshes in the loaded model
+        // Enable shadows for all meshes
         loadedGroup->traverse([](Object3D& obj) {
             if (auto mesh = obj.as<Mesh>()) {
                 mesh->castShadow = true;
