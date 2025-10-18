@@ -5,19 +5,19 @@
 // Anonymous namespace - these constants are LOCAL to this file only (NOT global!)
 namespace {
     // Physics constants (realistic tuning)
-    constexpr float MAX_SPEED = 41.67f;                  // ~150 km/h (realistic for a small car)
+    constexpr float MAX_SPEED = 55.56f;                  // ~200 km/h (increased top speed)
     constexpr float MAX_REVERSE_SPEED = 13.9f;           // ~50 km/h reverse
     constexpr float TURN_SPEED = 1.5f;                   // 1.5 rad/sec (~86°/sec) - sharper turning
     constexpr float FORWARD_ACCELERATION = 8.0f;         // Balanced acceleration
     constexpr float BACKWARD_ACCELERATION = -4.0f;       // Slower reverse acceleration
-    constexpr float FRICTION_COEFFICIENT = 0.997f;       // More friction for tighter control
+    constexpr float FRICTION_COEFFICIENT = 0.9985f;      // Lower friction for higher top speed
     constexpr float DRIFT_FRICTION_COEFFICIENT = 0.992f; // Less friction while drifting
     constexpr float MIN_SPEED_THRESHOLD = 0.1f;          // Minimum speed for any turning
 
     // Nitrous constants
     constexpr float NITROUS_DURATION = 5.0f;             // 5 seconds of boost
     constexpr float NITROUS_ACCELERATION = 14.0f;        // Moderate boost acceleration
-    constexpr float NITROUS_MAX_SPEED = 50.0f;           // ~180 km/h during boost
+    constexpr float NITROUS_MAX_SPEED = 69.44f;          // ~250 km/h during boost (increased)
 
     // Vehicle dimensions
     constexpr float VEHICLE_WIDTH = 1.0f;
@@ -32,6 +32,32 @@ namespace {
     constexpr float DRIFT_EXIT_RETENTION = 0.5f;         // How much drift angle to keep when exiting drift
     constexpr float DRIFT_DECAY_RATE = 0.95f;            // Drift angle decay per frame
 
+    // Gear system constants
+    constexpr int NUM_GEARS = 5;                         // 5-speed transmission
+    constexpr float GEAR_SHIFT_UP_RPM = 6000.0f;         // Shift up at 6000 RPM
+    constexpr float GEAR_SHIFT_DOWN_RPM = 2500.0f;       // Shift down at 2500 RPM
+    constexpr float IDLE_RPM = 1000.0f;                  // Engine idle RPM
+    constexpr float MAX_RPM = 7000.0f;                   // Redline RPM
+
+    // Speed ranges for each gear (in m/s)
+    constexpr float GEAR_SPEEDS[NUM_GEARS + 1] = {
+        0.0f,    // Gear 1 starts at 0
+        12.0f,   // Gear 2 at ~43 km/h (increased)
+        22.0f,   // Gear 3 at ~79 km/h (increased)
+        35.0f,   // Gear 4 at ~126 km/h (increased)
+        48.0f,   // Gear 5 at ~173 km/h (increased)
+        70.0f    // Max speed in gear 5 (~252 km/h)
+    };
+
+    // Acceleration multipliers per gear (lower gears = more torque)
+    constexpr float GEAR_ACCELERATION_MULTIPLIERS[NUM_GEARS] = {
+        1.5f,    // Gear 1: 150% acceleration (lots of torque)
+        1.2f,    // Gear 2: 120% acceleration
+        1.0f,    // Gear 3: 100% acceleration (base)
+        0.8f,    // Gear 4: 80% acceleration
+        0.6f     // Gear 5: 60% acceleration (high speed, low torque)
+    };
+
     constexpr float PI = std::numbers::pi_v<float>;
     constexpr float TWO_PI = 2.0f * PI;
     constexpr float INITIAL_ROTATION_RADIANS = PI;       // 180 degrees (π radians) for minimap alignment
@@ -45,7 +71,9 @@ Vehicle::Vehicle(float x, float y, float z)
       driftAngle_(0.0f),
       hasNitrous_(false),
       nitrousActive_(false),
-      nitrousTimeRemaining_(0.0f) {
+      nitrousTimeRemaining_(0.0f),
+      currentGear_(1),
+      rpm_(IDLE_RPM) {
     // Set vehicle-specific size
     size_[0] = VEHICLE_WIDTH;
     size_[1] = VEHICLE_HEIGHT;
@@ -57,7 +85,9 @@ Vehicle::Vehicle(float x, float y, float z)
 }
 
 void Vehicle::accelerateForward() noexcept {
-    acceleration_ = nitrousActive_ ? NITROUS_ACCELERATION : FORWARD_ACCELERATION;
+    float base_acceleration = nitrousActive_ ? NITROUS_ACCELERATION : FORWARD_ACCELERATION;
+    // Apply gear acceleration multiplier for more realistic acceleration
+    acceleration_ = base_acceleration * getGearAccelerationMultiplier();
 }
 
 void Vehicle::accelerateBackward() noexcept {
@@ -163,16 +193,52 @@ void Vehicle::update(float deltaTime) {
         }
     }
 
+    // Update gear shifting based on current speed
+    updateGearShifting();
+
     // Update velocity based on acceleration
     velocity_ += acceleration_ * deltaTime;
 
     // Apply friction (less friction while drifting)
-    float friction_coefficient = isDrifting_ ? DRIFT_FRICTION_COEFFICIENT : FRICTION_COEFFICIENT;
+    // Logarithmic friction curve: more friction at low speeds, less at high speeds
+    float baseFriction = isDrifting_ ? DRIFT_FRICTION_COEFFICIENT : FRICTION_COEFFICIENT;
+
+    // Calculate friction multiplier using logarithmic curve
+    // At low speeds: higher friction (slower deceleration from friction)
+    // At high speeds: lower friction (allows reaching top speed)
+    float speedRatio = std::abs(velocity_) / MAX_SPEED;
+    speedRatio = std::clamp(speedRatio, 0.01f, 1.0f); // Prevent log(0)
+
+    // Logarithmic curve: friction increases as speed decreases
+    // log(0.01) = -4.6, log(1.0) = 0
+    // Map to range [0.994, 0.9985] for normal driving
+    float logValue = std::log(speedRatio);
+    float frictionRange = 0.9985f - 0.994f; // 0.0045
+    float frictionMultiplier = 0.994f + ((logValue + 4.6f) / 4.6f) * frictionRange;
+    frictionMultiplier = std::clamp(frictionMultiplier, 0.994f, 0.9985f);
+
+    float friction_coefficient = isDrifting_ ? baseFriction : frictionMultiplier;
     velocity_ *= friction_coefficient;
 
     // Clamp velocity to max speeds (higher during nitrous)
     float current_max_speed = nitrousActive_ ? NITROUS_MAX_SPEED : MAX_SPEED;
     velocity_ = std::clamp(velocity_, -MAX_REVERSE_SPEED, current_max_speed);
+
+    // Update RPM based on speed and current gear
+    float absolute_velocity = std::abs(velocity_);
+    if (absolute_velocity < 0.1f) {
+        // Idle RPM when stopped
+        rpm_ = IDLE_RPM;
+    } else if (currentGear_ > 0 && currentGear_ <= NUM_GEARS) {
+        // Calculate RPM based on speed within current gear's range
+        float gear_min_speed = GEAR_SPEEDS[currentGear_ - 1];
+        float gear_max_speed = GEAR_SPEEDS[currentGear_];
+        float speed_ratio = (absolute_velocity - gear_min_speed) / (gear_max_speed - gear_min_speed);
+        speed_ratio = std::clamp(speed_ratio, 0.0f, 1.0f);
+
+        // Map speed ratio to RPM range (shift point to max RPM)
+        rpm_ = GEAR_SHIFT_DOWN_RPM + speed_ratio * (MAX_RPM - GEAR_SHIFT_DOWN_RPM);
+    }
 
     // When drifting, car moves in a direction between facing and drift angle
     float movement_angle = rotation_;
@@ -201,6 +267,8 @@ void Vehicle::reset() {
     hasNitrous_ = false;
     nitrousActive_ = false;
     nitrousTimeRemaining_ = 0.0f;
+    currentGear_ = 1;
+    rpm_ = IDLE_RPM;
 
     // Reset camera to follow mode
     if (resetCameraCallback_) {
@@ -226,4 +294,46 @@ void Vehicle::setVelocity(float velocity) noexcept {
 
 float Vehicle::getDriftAngle() const noexcept {
     return driftAngle_;
+}
+
+int Vehicle::getCurrentGear() const noexcept {
+    return currentGear_;
+}
+
+float Vehicle::getRPM() const noexcept {
+    return rpm_;
+}
+
+void Vehicle::updateGearShifting() noexcept {
+    float absolute_velocity = std::abs(velocity_);
+
+    // Don't shift during reverse
+    if (velocity_ < 0.0f) {
+        currentGear_ = 0; // Reverse gear
+        return;
+    }
+
+    // Start in gear 1 when moving forward from stop
+    if (absolute_velocity < 0.1f) {
+        currentGear_ = 1;
+        return;
+    }
+
+    // Automatic gear shifting based on speed
+    // Shift up when reaching the upper speed threshold for current gear
+    if (currentGear_ < NUM_GEARS && absolute_velocity >= GEAR_SPEEDS[currentGear_]) {
+        currentGear_++;
+    }
+    // Shift down when falling below the lower speed threshold
+    else if (currentGear_ > 1 && absolute_velocity < GEAR_SPEEDS[currentGear_ - 1]) {
+        currentGear_--;
+    }
+}
+
+float Vehicle::getGearAccelerationMultiplier() const noexcept {
+    // Return multiplier based on current gear (lower gears = more torque)
+    if (currentGear_ >= 1 && currentGear_ <= NUM_GEARS) {
+        return GEAR_ACCELERATION_MULTIPLIERS[currentGear_ - 1];
+    }
+    return 1.0f; // Default multiplier for reverse or invalid gear
 }

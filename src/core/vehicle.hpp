@@ -35,6 +35,8 @@ public:
     [[nodiscard]] float getVelocity() const noexcept;
     [[nodiscard]] float getMaxSpeed() const noexcept;
     [[nodiscard]] float getDriftAngle() const noexcept;  // Get current drift angle for camera
+    [[nodiscard]] int getCurrentGear() const noexcept;   // Get current gear number
+    [[nodiscard]] float getRPM() const noexcept;         // Get current engine RPM (for UI/audio)
 
     // Setters for collision response
     void setVelocity(float velocity) noexcept;
@@ -45,6 +47,10 @@ public:
 private:
     // Calculate turn rate based on current speed
     [[nodiscard]] float calculateTurnRate() const noexcept;
+
+    // Gear system methods
+    void updateGearShifting() noexcept;
+    [[nodiscard]] float getGearAccelerationMultiplier() const noexcept;
 
     float velocity_;                          // Current speed
     float acceleration_;                      // Current acceleration
@@ -57,6 +63,10 @@ private:
     bool hasNitrous_;                         // Whether player has a nitrous pickup
     bool nitrousActive_;                      // Whether nitrous is currently active
     float nitrousTimeRemaining_;              // Time left for nitrous boost
+
+    // Gear system state
+    int currentGear_;                         // Current gear (0 = reverse, 1-5 = forward gears)
+    float rpm_;                               // Current engine RPM
 
     // Callback
     std::function<void()> resetCameraCallback_;

@@ -25,8 +25,7 @@ namespace {
     constexpr float ENGINE_PITCH_RANGE = ENGINE_PITCH_MAX - ENGINE_PITCH_MIN; // 1.2
 
     // Reference speeds for audio calculation
-    constexpr float BASE_REFERENCE_SPEED = 20.0f;     // Base speed for pitch calculation
-    constexpr float NITROUS_REFERENCE_SPEED = 25.0f;  // Higher reference during nitrous
+    constexpr float BASE_REFERENCE_SPEED = 20.0f;     // Base speed for drift sound volume
 
     // Asset path
     const std::string DRIFT_SOUND_PATH = "assets/tireScreech.wav";
@@ -115,13 +114,20 @@ void AudioManager::update(const Vehicle& vehicle) {
         return;
     }
 
-    const float absoluteVelocity = std::abs(vehicle.getVelocity());
+    const float rpm = vehicle.getRPM();
+    const int currentGear = vehicle.getCurrentGear();
     const bool nitrousActive = vehicle.isNitrousActive();
     const bool isDrifting = vehicle.isDrifting();
+    const float absoluteVelocity = std::abs(vehicle.getVelocity());
 
-    // Update pitch based on speed (simulates engine RPM)
-    const float referenceSpeed = nitrousActive ? NITROUS_REFERENCE_SPEED : BASE_REFERENCE_SPEED;
-    float pitch = calculateEnginePitch(absoluteVelocity, referenceSpeed);
+    // Calculate pitch based on RPM (1000-7000 RPM range)
+    // Map RPM to pitch range (0.8 - 2.0)
+    constexpr float MIN_RPM = 1000.0f;
+    constexpr float MAX_RPM = 7000.0f;
+    float rpmRatio = (rpm - MIN_RPM) / (MAX_RPM - MIN_RPM);
+    rpmRatio = std::clamp(rpmRatio, 0.0f, 1.0f);
+
+    float pitch = ENGINE_PITCH_MIN + (rpmRatio * ENGINE_PITCH_RANGE);
 
     // Add extra pitch boost during nitrous
     if (nitrousActive) {
@@ -130,11 +136,23 @@ void AudioManager::update(const Vehicle& vehicle) {
 
     ma_sound_set_pitch(engineSound_.get(), pitch);
 
-    // Update volume based on speed
-    const float baseVolume = ENGINE_IDLE_VOLUME + (absoluteVelocity / BASE_REFERENCE_SPEED) * (ENGINE_MAX_VOLUME - ENGINE_IDLE_VOLUME);
+    // Update volume based on RPM and throttle (higher RPM = louder)
+    // Reduce volume in lower gears to make it less loud
+    float baseVolume = ENGINE_IDLE_VOLUME + (rpmRatio * (ENGINE_MAX_VOLUME - ENGINE_IDLE_VOLUME));
+
+    // Volume reduction for lower gears (gear 1-2 are quieter)
+    float gearVolumeMultiplier = 1.0f;
+    if (currentGear == 1) {
+        gearVolumeMultiplier = 0.6f;  // 40% quieter in 1st gear
+    } else if (currentGear == 2) {
+        gearVolumeMultiplier = 0.75f; // 25% quieter in 2nd gear
+    } else if (currentGear == 3) {
+        gearVolumeMultiplier = 0.9f;  // 10% quieter in 3rd gear
+    }
+
+    float volume = baseVolume * gearVolumeMultiplier;
 
     // Boost volume significantly during nitrous
-    float volume = baseVolume;
     if (nitrousActive) {
         volume += NITROUS_VOLUME_BOOST;
     }

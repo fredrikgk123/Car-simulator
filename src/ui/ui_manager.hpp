@@ -16,6 +16,10 @@ private:
     void createSpeedometerGeometry();
     void updateSpeedometer(float speed);
     void createSevenSegmentDigit(float xPos, float yPos, int digitIndex);
+    void createGearDisplay();
+    void updateGearDisplay(int gear);
+    void createRPMDisplay();
+    void updateRPMDisplay(float rpm);
 
     threepp::GLRenderer& renderer_;
 
@@ -30,6 +34,14 @@ private:
 
     // Seven-segment display digits
     std::vector<std::vector<std::shared_ptr<threepp::Mesh>>> digitSegments_;
+
+    // Gear display components
+    std::shared_ptr<threepp::Mesh> gearBackground_;
+    std::vector<std::shared_ptr<threepp::Mesh>> gearDigitSegments_;
+
+    // RPM display components
+    std::shared_ptr<threepp::Mesh> rpmBackground_;
+    std::vector<std::vector<std::shared_ptr<threepp::Mesh>>> rpmDigitSegments_;
 
     // Nitrous display components
     std::shared_ptr<threepp::Mesh> nitrousIndicator_;
