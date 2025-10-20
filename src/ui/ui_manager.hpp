@@ -47,4 +47,7 @@ private:
     std::shared_ptr<threepp::Mesh> nitrousIndicator_;
     std::shared_ptr<threepp::Mesh> nitrousBar_;
     std::shared_ptr<threepp::Mesh> nitrousBarOutline_;
+
+    // UIManager is responsible for threepp-based HUD only. ImGui widgets are handled
+    // by a separate ImGuiLayer to keep high cohesion.
 };

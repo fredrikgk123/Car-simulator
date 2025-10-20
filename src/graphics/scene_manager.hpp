@@ -12,6 +12,11 @@ enum class CameraMode {
 class SceneManager {
 public:
     SceneManager();
+    ~SceneManager() = default;
+
+    // Non-copyable (manages renderer and scene resources)
+    SceneManager(const SceneManager&) = delete;
+    SceneManager& operator=(const SceneManager&) = delete;
 
     // Scene component access
     [[nodiscard]] threepp::Scene& getScene() noexcept;
@@ -26,9 +31,10 @@ public:
     void setupMinimapCamera(float aspectRatio);
 
     // Camera control
-    void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation, bool nitrousActive = false, float vehicleVelocity = 0.0f, float driftAngle = 0.0f);
+    void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation,
+                                  bool nitrousActive = false, float vehicleVelocity = 0.0f, float driftAngle = 0.0f);
     void updateMinimapCamera(float targetX, float targetZ);
-    void updateCameraFOV(bool nitrousActive, float vehicleVelocity = 0.0f);  // Dynamic FOV for speed effect (speed-based)
+    void updateCameraFOV(bool nitrousActive, float vehicleVelocity = 0.0f);
 
     // Camera mode switching
     void setCameraMode(CameraMode mode) noexcept;

@@ -155,6 +155,9 @@ UIManager::UIManager(GLRenderer& renderer)
 
     // Create RPM display
     createRPMDisplay();
+
+    // Note: ImGui context and backend initialization is performed by the application (main.cpp).
+    // UIManager will only build ImGui widgets when a context is available.
 }
 
 void UIManager::createSpeedometerGeometry() {
