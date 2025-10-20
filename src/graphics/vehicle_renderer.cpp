@@ -13,7 +13,9 @@ namespace {
 VehicleRenderer::VehicleRenderer(Scene& scene, const Vehicle& vehicle)
     : GameObjectRenderer(scene, vehicle),
       vehicle_(vehicle),
-      useCustomModel_(false) {
+      useCustomModel_(false),
+      customModelGroup_(nullptr),
+      modelScale_(1.0f) {
     // Now call createModel() after VehicleRenderer is fully constructed
     createModel();
 }
@@ -31,11 +33,13 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
         // Clear existing model
         if (bodyMesh_) {
             objectGroup_->remove(*bodyMesh_);
+            bodyMesh_.reset();
         }
 
         // Scale and position the loaded model
-        loadedGroup->scale.setScalar(MODEL_SCALE);
-        loadedGroup->position.y = MODEL_VERTICAL_OFFSET;
+        float appliedScale = MODEL_SCALE * modelScale_;
+        loadedGroup->scale.setScalar(appliedScale);
+        loadedGroup->position.y = MODEL_VERTICAL_OFFSET * appliedScale;
 
         // Enable shadows for all meshes
         loadedGroup->traverse([](Object3D& obj) {
@@ -46,6 +50,7 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
         });
 
         objectGroup_->add(loadedGroup);
+        customModelGroup_ = loadedGroup;
         useCustomModel_ = true;
 
         std::cout << "Successfully loaded car model: " << modelPath << std::endl;
@@ -54,6 +59,41 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
     } catch (const std::exception& e) {
         std::cerr << "Error loading model: " << e.what() << std::endl;
         return false;
+    }
+}
+
+void VehicleRenderer::unloadModel() {
+    // Remove any custom loaded model and fall back to the box mesh
+    if (customModelGroup_) {
+        objectGroup_->remove(*customModelGroup_);
+        customModelGroup_.reset();
+    }
+    useCustomModel_ = false;
+
+    // Remove any existing body mesh so createModel can recreate it with current vehicle size
+    if (bodyMesh_) {
+        objectGroup_->remove(*bodyMesh_);
+        bodyMesh_.reset();
+    }
+
+    createModel();
+}
+
+void VehicleRenderer::applyScale(float scale) {
+    modelScale_ = scale;
+
+    if (useCustomModel_ && customModelGroup_) {
+        // Apply scale to loaded group
+        float appliedScale = MODEL_SCALE * modelScale_;
+        customModelGroup_->scale.setScalar(appliedScale);
+        customModelGroup_->position.y = MODEL_VERTICAL_OFFSET * appliedScale;
+    } else {
+        // Recreate fallback mesh with new size from vehicle
+        if (bodyMesh_) {
+            objectGroup_->remove(*bodyMesh_);
+            bodyMesh_.reset();
+        }
+        createModel();
     }
 }
 

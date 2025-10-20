@@ -11,7 +11,12 @@
 #include "graphics/scene_manager.hpp"
 #include "input/input_handler.hpp"
 #include "audio/audio_manager.hpp"
-#include "ui/ui_manager.hpp"
+#include "ui/imgui_layer.hpp"
+
+// ImGui and backend headers
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 using namespace threepp;
 
@@ -37,6 +42,27 @@ namespace {
 int main() {
     Canvas canvas("Bilsimulator");
 
+    // Initialize ImGui backends using the native GLFW window pointer from threepp::Canvas
+    // We'll choose GLSL version depending on platform (macOS requires `#version 150`).
+#ifdef __APPLE__
+    const char* glsl_version = "#version 150";
+#else
+    const char* glsl_version = "#version 330 core";
+#endif
+
+    // Create ImGui context early so UIManager's constructor (which may call CreateContext) finds it.
+    if (!ImGui::GetCurrentContext()) {
+        ImGui::CreateContext();
+    }
+
+    // Initialize platform/renderer backends
+    void* window_ptr = canvas.windowPtr();
+    GLFWwindow* window = static_cast<GLFWwindow*>(window_ptr);
+    if (window) {
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init(glsl_version);
+    }
+
     // Initialize scene
     SceneManager scene_manager;
     scene_manager.setupCamera(canvas.aspect());
@@ -51,6 +77,8 @@ int main() {
 
     // Load custom car model
     vehicle_renderer.loadModel(CAR_MODEL_PATH);
+    // Ensure initial model matches vehicle scale
+    vehicle_renderer.applyScale(vehicle.getScale());
 
     // Create obstacle manager with walls and trees
     ObstacleManager obstacle_manager(PLAY_AREA_SIZE, TREE_COUNT);
@@ -94,13 +122,8 @@ int main() {
         std::cout << "Audio file '" << ENGINE_SOUND_PATH << "' not found. Continuing without audio..." << std::endl;
     }
 
-    // Setup UI
-    UIManager ui_manager(scene_manager.getRenderer());
-
-    // Handle window resize
-    canvas.onWindowResize([&](const WindowSize& size) {
-        scene_manager.resize(size);
-    });
+    // Setup UI (use ImGui-based HUD instead of threepp HUD)
+    ImGuiLayer imgui_layer;
 
     // Main game loop
     Clock clock;
@@ -109,6 +132,10 @@ int main() {
         float delta_time = clock.getDelta();
 
         // Update game state
+        // Forward the UI acceleration multiplier to the vehicle so it affects how acceleration is applied
+        // Note: acceleration changes are staged in the UI and applied only when a respawn is requested.
+        // This prevents mid-run tuning from instantly changing vehicle dynamics until the user respawns.
+
         input_handler->update(delta_time);
         vehicle.update(delta_time);
         vehicle_renderer.update();
@@ -162,8 +189,46 @@ int main() {
 
         // Render UI overlay
         gl_renderer.setViewport(0, 0, window_size.width(), window_size.height());
-        ui_manager.render(vehicle, window_size);
+
+        // Start ImGui frame (platform + renderer backends)
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // ImGui widgets (HUD + developer window)
+        imgui_layer.render(vehicle, window_size);
+
+        // Handle developer UI requests: scrap mesh, reload model, respawn with new scale
+        float requested_scale = 1.0f;
+        if (imgui_layer.consumeScrapMeshRequest()) {
+            vehicle_renderer.unloadModel();
+        }
+        if (imgui_layer.consumeReloadModelRequest()) {
+            vehicle_renderer.loadModel(CAR_MODEL_PATH);
+            // Ensure model scale follows vehicle scale
+            vehicle_renderer.applyScale(vehicle.getScale());
+        }
+        if (imgui_layer.consumeRespawnRequest(requested_scale)) {
+            // Apply scale to vehicle (updates size for collisions/render fallback)
+            vehicle.setScale(requested_scale);
+            // Apply staged UI tuning (acceleration multiplier) when respawning
+            vehicle.setAccelerationMultiplier(imgui_layer.getAccelerationMultiplier());
+            // Reset vehicle state (position resets to initial spawn)
+            vehicle.reset();
+            // Update renderer scale to match
+            vehicle_renderer.applyScale(requested_scale);
+        }
+
+        // Render ImGui draw data via backend
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     });
+
+    // Shutdown ImGui backends and context
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     return 0;
 }
