@@ -35,7 +35,7 @@ namespace {
     constexpr float MINIMAP_ASPECT_RATIO = 1.0f;
 
     // Asset paths
-    const std::string CAR_MODEL_PATH = "assets/Chevrolet_Camaro_SS_High.obj";
+    const std::string CAR_MODEL_PATH = "assets/car1.obj";
     const std::string ENGINE_SOUND_PATH = "assets/carnoise.wav";
 }
 

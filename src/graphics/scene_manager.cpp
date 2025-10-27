@@ -6,8 +6,8 @@ using namespace threepp;
 // Anonymous namespace - these constants are LOCAL to this file only (NOT global!)
 namespace {
     // Camera constants
-    constexpr float DEFAULT_CAMERA_DISTANCE = 8.0f;   // 8 units behind - far enough to see surroundings
-    constexpr float DEFAULT_CAMERA_HEIGHT = 4.0f;     // 4 units above - provides good viewing angle
+    constexpr float DEFAULT_CAMERA_DISTANCE = 8.0f;   // 8 units behind - default follow distance
+    constexpr float DEFAULT_CAMERA_HEIGHT = 4.0f;     // 4 units above - default follow height
     constexpr float DEFAULT_CAMERA_LERP_SPEED = 0.2f; // 0.2 = smooth but responsive
     constexpr float MINIMAP_VIEW_SIZE = 15.0f;        // 15 units - covers 30x30 area
     constexpr float MINIMAP_HEIGHT = 50.0f;           // 50 units high - bird's eye view
@@ -16,6 +16,19 @@ namespace {
     constexpr float HOOD_CAM_FORWARD_OFFSET = 2.5f;  // 2.5 units in front of vehicle center (moved more forward)
     constexpr float HOOD_CAM_HEIGHT = 1.3f;          // 1.3 units above ground (0.5 car lift + 0.8 hood height)
     constexpr float HOOD_CAM_LOOK_DISTANCE = 10.0f;  // Look 10 units ahead
+
+    // Side cam constants
+    constexpr float SIDE_CAM_DISTANCE = 6.0f;       // 6 units to the side of the vehicle
+    constexpr float SIDE_CAM_HEIGHT = 2.0f;         // 2 units above ground for side view
+
+    // Inside/cockpit cam constants
+    constexpr float INSIDE_CAM_FORWARD_OFFSET = -0.15f; // Move camera slightly back inside cabin
+    constexpr float INSIDE_CAM_HEIGHT = 1.4f;           // Slightly higher eye position to clear interior
+    constexpr float INSIDE_CAM_SIDE_OFFSET = 0.45f;     // Lateral offset to the right (behind wheel)
+    // Reduced look distance to match shortened wheelbase
+    constexpr float INSIDE_CAM_LOOK_DISTANCE = 8.0f; // Look slightly ahead from inside
+    // Match the visual lowering applied to the car model so the cockpit aligns visually
+    constexpr float CAR_LOWER_AMOUNT = 0.30f; // matches vehicle_renderer CAR_LOWER_AMOUNT
 
     // Drift camera constants - SUBTLE effect
     constexpr float DRIFT_SIDE_OFFSET_MAX = 1.5f;    // Maximum 1.5 units to the side (subtle)
@@ -36,6 +49,13 @@ namespace {
     constexpr float CAMERA_NEAR = 0.1f;
     constexpr float CAMERA_FAR = 1000.0f;
 
+    // Cockpit/inside camera FOV tuning (reduce dramatic changes)
+    constexpr float COCKPIT_FOV_FACTOR = 0.5f;        // Reduce speed-based FOV change to 50% in cockpit
+    constexpr float COCKPIT_NITROUS_FACTOR = 0.5f;    // Reduce nitrous FOV boost by half in cockpit
+    constexpr float COCKPIT_FOV_LERP_MULT = 0.6f;     // Slow FOV interpolation in cockpit for smoother change
+    // Smoothing specific to nitrous application (when nitrous toggles, make FOV change smoother)
+    constexpr float NITROUS_FOV_LERP_MULT = 0.25f;   // Reduce interpolation speed to 25% when nitrous is active
+
     // Lighting constants
     constexpr unsigned int AMBIENT_COLOR = 0x404040;  // Dim gray - prevents completely black shadows
     constexpr float AMBIENT_INTENSITY = 1.0f;
@@ -48,6 +68,11 @@ SceneManager::SceneManager()
     : cameraDistance_(DEFAULT_CAMERA_DISTANCE),
       cameraHeight_(DEFAULT_CAMERA_HEIGHT),
       cameraLerpSpeed_(DEFAULT_CAMERA_LERP_SPEED),
+      cameraSideDistance_(SIDE_CAM_DISTANCE),
+      cameraSideHeight_(SIDE_CAM_HEIGHT),
+      cameraInsideForwardOffset_(INSIDE_CAM_FORWARD_OFFSET),
+      cameraInsideHeight_(INSIDE_CAM_HEIGHT),
+      cameraInsideSideOffset_(INSIDE_CAM_SIDE_OFFSET),
       baseFOV_(CAMERA_FOV_MIN),
       currentFOV_(CAMERA_FOV_MIN),
       targetFOV_(CAMERA_FOV_MIN),
@@ -145,6 +170,58 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
 
         // Reset drift offset in hood cam
         driftCameraOffset_ = 0.0f;
+    } else if (cameraMode_ == CameraMode::SIDE) {
+        // Side cam - position camera to the side of the vehicle and look at it
+        float sideAngle = targetRotation + (math::PI / 2.0f);  // 90 degrees to the right
+
+        desiredCameraX = targetX + (std::sin(sideAngle) * cameraSideDistance_);
+        desiredCameraY = targetY + cameraSideHeight_;
+        desiredCameraZ = targetZ + (std::cos(sideAngle) * cameraSideDistance_);
+
+        // Look at the vehicle center
+        desiredLookAtX = targetX;
+        desiredLookAtY = targetY;
+        desiredLookAtZ = targetZ;
+
+        // No drift offset applied in side view
+        driftCameraOffset_ = 0.0f;
+    } else if (cameraMode_ == CameraMode::INSIDE) {
+        // Inside/cockpit cam - approximate driver's eye position inside the vehicle
+        desiredCameraX = targetX + (std::sin(targetRotation) * cameraInsideForwardOffset_);
+        // Subtract the visual lowering amount so camera aligns with lowered body
+        desiredCameraY = targetY + cameraInsideHeight_ - CAR_LOWER_AMOUNT;
+        desiredCameraZ = targetZ + (std::cos(targetRotation) * cameraInsideForwardOffset_);
+
+        // Apply lateral offset to position the camera behind the (right-side) wheel
+        {
+            float sideAngle = targetRotation + (math::PI / 2.0f); // right vector
+            desiredCameraX += std::sin(sideAngle) * cameraInsideSideOffset_;
+            desiredCameraZ += std::cos(sideAngle) * cameraInsideSideOffset_;
+        }
+
+        // Look ahead from inside the cabin
+        desiredLookAtX = targetX + (std::sin(targetRotation) * INSIDE_CAM_LOOK_DISTANCE);
+        // Align look-at with visual lowering
+        desiredLookAtY = targetY + cameraInsideHeight_ - CAR_LOWER_AMOUNT;
+        desiredLookAtZ = targetZ + (std::cos(targetRotation) * INSIDE_CAM_LOOK_DISTANCE);
+
+        // Reset drift offset in inside cam
+        driftCameraOffset_ = 0.0f;
+
+        // Immediate, non-interpolated cockpit camera: set position and lookAt directly
+        camera_->position.set(desiredCameraX, desiredCameraY, desiredCameraZ);
+        camera_->lookAt(desiredLookAtX, desiredLookAtY, desiredLookAtZ);
+
+        // Keep internal smoothed state in sync so other modes don't jump
+        currentCameraX_ = desiredCameraX;
+        currentCameraY_ = desiredCameraY;
+        currentCameraZ_ = desiredCameraZ;
+        currentLookAtX_ = desiredLookAtX;
+        currentLookAtY_ = desiredLookAtY;
+        currentLookAtZ_ = desiredLookAtZ;
+
+        // Done — skip interpolation below
+        return;
     } else {
         // Calculate drift camera offset based on drift angle
         float absDriftAngle = std::abs(driftAngle);
@@ -202,14 +279,32 @@ void SceneManager::updateMinimapCamera(float targetX, float targetZ) {
 }
 
 void SceneManager::updateCameraFOV(bool nitrousActive, float vehicleVelocity) {
-    // Calculate target FOV based on speed and nitrous
-    float targetFOV = CAMERA_FOV_MIN + ((std::min(vehicleVelocity, SPEED_FOR_MAX_FOV) / SPEED_FOR_MAX_FOV) * (CAMERA_FOV_MAX - CAMERA_FOV_MIN));
+    // Calculate base speed ratio (0..1)
+    float speedRatio = std::min(vehicleVelocity, SPEED_FOR_MAX_FOV) / SPEED_FOR_MAX_FOV;
+
+    // Base FOV calculation (speed-based portion)
+    float fovRange = CAMERA_FOV_MAX - CAMERA_FOV_MIN;
+
+    float targetFOV = CAMERA_FOV_MIN + (speedRatio * fovRange);
+
+    // Apply nitrous boost normally
     if (nitrousActive) {
-        targetFOV += NITROUS_FOV_BOOST;  // Add nitrous boost
+        targetFOV += NITROUS_FOV_BOOST;
     }
 
-    // Smoothly interpolate current FOV to target
-    currentFOV_ += (targetFOV - currentFOV_) * fovLerpSpeed_;
+    // Adjust the target FOV for cockpit mode (reduced magnitude)
+    if (cameraMode_ == CameraMode::INSIDE) {
+        targetFOV = CAMERA_FOV_MIN + (speedRatio * fovRange * COCKPIT_FOV_FACTOR);
+        if (nitrousActive) targetFOV += (NITROUS_FOV_BOOST * COCKPIT_NITROUS_FACTOR);
+    }
+
+    // Compute lerp speed and reduce it when nitrous is active to make the transition smoother
+    float lerpSpeed = fovLerpSpeed_;
+    if (cameraMode_ == CameraMode::INSIDE) lerpSpeed *= COCKPIT_FOV_LERP_MULT;
+    if (nitrousActive) lerpSpeed *= NITROUS_FOV_LERP_MULT;
+
+    // Interpolate current FOV toward target using the computed lerpSpeed (applies also to cockpit now)
+    currentFOV_ += (targetFOV - currentFOV_) * lerpSpeed;
 
     // Apply FOV to camera
     camera_->fov = currentFOV_;
@@ -247,7 +342,15 @@ CameraMode SceneManager::getCameraMode() const noexcept {
 }
 
 void SceneManager::toggleCameraMode() noexcept {
-    cameraMode_ = (cameraMode_ == CameraMode::FOLLOW) ? CameraMode::HOOD : CameraMode::FOLLOW;
+    if (cameraMode_ == CameraMode::FOLLOW) {
+        cameraMode_ = CameraMode::HOOD;
+    } else if (cameraMode_ == CameraMode::HOOD) {
+        cameraMode_ = CameraMode::SIDE;
+    } else if (cameraMode_ == CameraMode::SIDE) {
+        cameraMode_ = CameraMode::INSIDE;
+    } else {
+        cameraMode_ = CameraMode::FOLLOW;
+    }
 }
 
 void SceneManager::renderMinimap() {

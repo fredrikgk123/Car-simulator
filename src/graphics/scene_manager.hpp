@@ -6,7 +6,9 @@
 // Camera modes
 enum class CameraMode {
     FOLLOW,   // Third-person follow camera
-    HOOD      // First-person hood camera
+    HOOD,     // First-person hood camera
+    SIDE,     // Side view camera
+    INSIDE    // Interior / cockpit camera
 };
 
 class SceneManager {
@@ -57,6 +59,15 @@ private:
     float cameraDistance_;
     float cameraHeight_;
     float cameraLerpSpeed_;
+
+    // Side view camera parameters
+    float cameraSideDistance_; // Distance from vehicle for side view
+    float cameraSideHeight_;   // Height for side view
+
+    // Inside/cockpit camera parameters
+    float cameraInsideForwardOffset_; // Forward offset for interior camera
+    float cameraInsideHeight_;        // Height for interior camera
+    float cameraInsideSideOffset_;    // Lateral offset (right/left) for interior camera (behind wheel)
 
     // FOV parameters
     float baseFOV_;
