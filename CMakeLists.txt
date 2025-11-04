@@ -3,6 +3,14 @@ project(bilsim)
 
 set(CMAKE_CXX_STANDARD 20)
 
+# Set Ninja as the preferred generator if available
+if(NOT CMAKE_MAKE_PROGRAM)
+    find_program(NINJA_EXECUTABLE ninja PATHS /opt/homebrew/Cellar/ninja/*/bin /opt/homebrew/bin /usr/local/bin)
+    if(NINJA_EXECUTABLE)
+        set(CMAKE_MAKE_PROGRAM ${NINJA_EXECUTABLE} CACHE FILEPATH "Ninja build tool" FORCE)
+    endif()
+endif()
+
 # Add optimization flags for better performance
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
