@@ -20,7 +20,12 @@ class VehicleRenderer : public GameObjectRenderer {
     void applyScale(float scale);
 
     // Update visual representation (override to animate wheels)
-    void update() override;
+    // leftPressed/rightPressed: raw keyboard input for steering wheel animation
+    void update(bool leftPressed = false, bool rightPressed = false);
+
+    // Get steering wheel position in vehicle-local coordinates
+    [[nodiscard]] std::array<float, 3> getSteeringWheelPosition() const noexcept;
+    [[nodiscard]] bool hasSteeringWheel() const noexcept;
 
   protected:
     // Override to create vehicle-specific model
@@ -31,6 +36,12 @@ class VehicleRenderer : public GameObjectRenderer {
     bool useCustomModel_;
     std::shared_ptr<threepp::Object3D> customModelGroup_;
     float modelScale_ = 1.0f; // runtime scale applied to loaded model
+    float actualAppliedScale_ = 1.0f; // the final computed scale (auto-scale * modelScale_)
+
+    // Steering wheel object
+    std::shared_ptr<threepp::Object3D> steeringWheel_;
+    std::shared_ptr<threepp::Group> steeringWheelPivot_;
+    bool steeringWheelPivotOnCustom_ = false;
 
     // Wheel objects (front-left, front-right, rear-left, rear-right)
     std::shared_ptr<threepp::Object3D> wheelFL_;
@@ -49,13 +60,27 @@ class VehicleRenderer : public GameObjectRenderer {
     void unloadWheelModels();
     void applyWheelScaleAndPosition(float appliedScale);
 
+    // Helper methods for steering wheel
+    bool loadSteeringWheel(const std::string& steeringWheelPath);
+    void unloadSteeringWheel();
+    void applySteeringWheelScaleAndPosition(float appliedScale);
+
     // Runtime state for wheel animation
-    float prevRotation_ = 0.0f; // previous vehicle rotation (radians)
     std::array<float,3> prevPosition_ = {0.0f, 0.0f, 0.0f}; // previous vehicle position
     float wheelSpinFL_ = 0.0f; // accumulated spin (radians)
     float wheelSpinFR_ = 0.0f;
     float wheelSpinRL_ = 0.0f;
     float wheelSpinRR_ = 0.0f;
+
+    // Steering wheel smoothing
+    float currentSteeringWheelRotation_ = 0.0f; // Current smoothed steering wheel rotation
+
+    // Spin axis detection (so we rotate around the correct local axis)
+    enum class WheelSpinAxis { X, Y, Z };
+
+    // Steering wheel geometry center and rotation axis
+    std::array<float,3> steeringWheelCenter_ = {0.0f, 0.0f, 0.0f};
+    WheelSpinAxis steeringWheelRotationAxis_ = WheelSpinAxis::X;
 
     // Per-wheel geometry center (local) used for recentering so wheels spin around their own center
     std::array<float,3> wheelCenterFL_ = {0.0f, 0.0f, 0.0f};
@@ -63,8 +88,7 @@ class VehicleRenderer : public GameObjectRenderer {
     std::array<float,3> wheelCenterRL_ = {0.0f, 0.0f, 0.0f};
     std::array<float,3> wheelCenterRR_ = {0.0f, 0.0f, 0.0f};
 
-    // Spin axis detection for each wheel (so we rotate around the correct local axis)
-    enum class WheelSpinAxis { X, Y, Z };
+    // Spin axis detection for each wheel
     WheelSpinAxis wheelSpinAxisFL_ = WheelSpinAxis::X;
     WheelSpinAxis wheelSpinAxisFR_ = WheelSpinAxis::X;
     WheelSpinAxis wheelSpinAxisRL_ = WheelSpinAxis::X;
