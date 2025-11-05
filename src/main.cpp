@@ -50,7 +50,7 @@ int main() {
     const char* glsl_version = "#version 330 core";
 #endif
 
-    // Create ImGui context early so UIManager's constructor (which may call CreateContext) finds it.
+    // Create ImGui context early
     if (!ImGui::GetCurrentContext()) {
         ImGui::CreateContext();
     }
@@ -156,10 +156,12 @@ int main() {
         const std::array<float, 3> vehicle_position = vehicle.getPosition();
         const float vehicle_rotation = vehicle.getRotation();
         const float vehicle_velocity = vehicle.getVelocity();
+        const float vehicle_scale = vehicle.getScale();
         const float drift_angle = vehicle.getDriftAngle();
         scene_manager.updateCameraFollowTarget(vehicle_position[0], vehicle_position[1], vehicle_position[2],
-                                              vehicle_rotation, vehicle.isNitrousActive(), vehicle_velocity, drift_angle);
-        scene_manager.updateMinimapCamera(vehicle_position[0], vehicle_position[2]);
+                                              vehicle_rotation, vehicle_scale, vehicle.isNitrousActive(),
+                                              vehicle_velocity, drift_angle);
+        scene_manager.updateMinimapCamera(vehicle_position[0], vehicle_position[2], vehicle_scale);
 
         // Update camera FOV based on speed and nitrous state (speed FOV effect)
         scene_manager.updateCameraFOV(vehicle.isNitrousActive(), std::abs(vehicle_velocity));

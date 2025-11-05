@@ -1,8 +1,7 @@
 # Create a library for UI components
 add_library(ui
-    ui_manager.cpp
-    ui_manager.hpp
     imgui_layer.cpp
+    imgui_layer.hpp
 )
 
 # Make headers available to other directories
