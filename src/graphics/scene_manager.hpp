@@ -34,8 +34,9 @@ public:
 
     // Camera control
     void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation,
-                                  bool nitrousActive = false, float vehicleVelocity = 0.0f, float driftAngle = 0.0f);
-    void updateMinimapCamera(float targetX, float targetZ);
+                                  float vehicleScale, bool nitrousActive = false, float vehicleVelocity = 0.0f,
+                                  float driftAngle = 0.0f);
+    void updateMinimapCamera(float targetX, float targetZ, float vehicleScale);
     void updateCameraFOV(bool nitrousActive, float vehicleVelocity = 0.0f);
 
     // Camera mode switching
@@ -87,5 +88,8 @@ private:
     float currentLookAtZ_;
 
     // Drift camera state
+
+    // Vehicle scale tracking for camera adjustments
+    float currentVehicleScale_;
     float driftCameraOffset_;  // Current side offset for drift camera
 };
