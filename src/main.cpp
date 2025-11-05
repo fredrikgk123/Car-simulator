@@ -35,7 +35,7 @@ namespace {
     constexpr float MINIMAP_ASPECT_RATIO = 1.0f;
 
     // Asset paths
-    const std::string CAR_MODEL_PATH = "assets/car1.obj";
+    const std::string CAR_MODEL_PATH = "assets/body.obj";
     const std::string ENGINE_SOUND_PATH = "assets/carnoise.wav";
 }
 
@@ -118,9 +118,6 @@ int main() {
     AudioManager audio_manager;
     bool audio_enabled = audio_manager.initialize(ENGINE_SOUND_PATH);
 
-    if (!audio_enabled) {
-        std::cout << "Audio file '" << ENGINE_SOUND_PATH << "' not found. Continuing without audio..." << std::endl;
-    }
 
     // Setup UI (use ImGui-based HUD instead of threepp HUD)
     ImGuiLayer imgui_layer;
@@ -132,13 +129,10 @@ int main() {
         float delta_time = clock.getDelta();
 
         // Update game state
-        // Forward the UI acceleration multiplier to the vehicle so it affects how acceleration is applied
-        // Note: acceleration changes are staged in the UI and applied only when a respawn is requested.
-        // This prevents mid-run tuning from instantly changing vehicle dynamics until the user respawns.
 
         input_handler->update(delta_time);
         vehicle.update(delta_time);
-        vehicle_renderer.update();
+        vehicle_renderer.update(input_handler->isLeftPressed(), input_handler->isRightPressed());
 
         // Handle obstacle collisions
         obstacle_manager.handleCollisions(vehicle);
@@ -158,6 +152,7 @@ int main() {
         const float vehicle_velocity = vehicle.getVelocity();
         const float vehicle_scale = vehicle.getScale();
         const float drift_angle = vehicle.getDriftAngle();
+
         scene_manager.updateCameraFollowTarget(vehicle_position[0], vehicle_position[1], vehicle_position[2],
                                               vehicle_rotation, vehicle_scale, vehicle.isNitrousActive(),
                                               vehicle_velocity, drift_angle);
@@ -200,26 +195,6 @@ int main() {
         // ImGui widgets (HUD + developer window)
         imgui_layer.render(vehicle, window_size);
 
-        // Handle developer UI requests: scrap mesh, reload model, respawn with new scale
-        float requested_scale = 1.0f;
-        if (imgui_layer.consumeScrapMeshRequest()) {
-            vehicle_renderer.unloadModel();
-        }
-        if (imgui_layer.consumeReloadModelRequest()) {
-            vehicle_renderer.loadModel(CAR_MODEL_PATH);
-            // Ensure model scale follows vehicle scale
-            vehicle_renderer.applyScale(vehicle.getScale());
-        }
-        if (imgui_layer.consumeRespawnRequest(requested_scale)) {
-            // Apply scale to vehicle (updates size for collisions/render fallback)
-            vehicle.setScale(requested_scale);
-            // Apply staged UI tuning (acceleration multiplier) when respawning
-            vehicle.setAccelerationMultiplier(imgui_layer.getAccelerationMultiplier());
-            // Reset vehicle state (position resets to initial spawn)
-            vehicle.reset();
-            // Update renderer scale to match
-            vehicle_renderer.applyScale(requested_scale);
-        }
 
         // Render ImGui draw data via backend
         ImGui::Render();

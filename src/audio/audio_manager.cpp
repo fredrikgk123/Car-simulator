@@ -63,7 +63,6 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
     ma_result result = ma_engine_init(nullptr, engine.get());
 
     if (result != MA_SUCCESS) {
-        std::cerr << "Failed to initialize audio engine" << std::endl;
         return false;
     }
     engine_ = std::move(engine);
@@ -76,7 +75,6 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
                                      nullptr, nullptr, sound.get());
 
     if (result != MA_SUCCESS) {
-        std::cout << "Engine sound not found at: " << engineSoundPath << std::endl;
         return false;
     }
     engineSound_ = std::move(sound);
@@ -96,7 +94,6 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
                                      nullptr, nullptr, driftSnd.get());
 
     if (result != MA_SUCCESS) {
-        std::cout << "Drift sound not found at: " << DRIFT_SOUND_PATH << std::endl;
         // driftSnd will be automatically cleaned up
     } else {
         driftSound_ = std::move(driftSnd);
@@ -105,7 +102,6 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
         driftSoundLoaded_ = true;
     }
 
-    std::cout << "Audio loaded successfully" << std::endl;
     return true;
 }
 

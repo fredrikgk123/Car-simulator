@@ -229,48 +229,6 @@ void ImGuiLayer::render(const Vehicle& vehicle, const threepp::WindowSize& size)
         }
     }
 
-    // Small developer/test window (toggleable)
-    if (show_test_window_) {
-        ImGui::SetNextWindowCollapsed(true, ImGuiCond_Once);
-        ImGui::Begin("Vehicle customization", &show_test_window_);
 
-        ImGui::Separator();
-        ImGui::SliderFloat("Car scale", &car_scale_, 0.5f, 3.0f, "%.2f");
-        ImGui::SliderFloat("Acceleration", &accel_multiplier_, 0.1f, 3.0f, "%.2f");
-        ImGui::TextDisabled("Changes to acceleration are staged and applied only when you click 'Spawn/Respawn Car'.");
-
-        if (ImGui::Button("Scrap mesh")) {
-            scrap_mesh_requested_ = true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Spawn/Respawn Car")) {
-            respawn_requested_ = true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Reload model")) {
-            reload_model_requested_ = true;
-        }
-
-        ImGui::End();
-    }
 }
 
-// Consume a respawn request if set by the UI
-bool ImGuiLayer::consumeRespawnRequest(float& out_scale) noexcept {
-    if (!respawn_requested_) return false;
-    out_scale = car_scale_;
-    respawn_requested_ = false;
-    return true;
-}
-
-bool ImGuiLayer::consumeScrapMeshRequest() noexcept {
-    if (!scrap_mesh_requested_) return false;
-    scrap_mesh_requested_ = false;
-    return true;
-}
-
-bool ImGuiLayer::consumeReloadModelRequest() noexcept {
-    if (!reload_model_requested_) return false;
-    reload_model_requested_ = false;
-    return true;
-}

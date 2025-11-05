@@ -18,6 +18,10 @@ public:
     // Set callback for reset event
     void setResetCallback(std::function<void()> callback);
 
+    // Get current input state for steering wheel animation
+    [[nodiscard]] bool isLeftPressed() const noexcept { return leftPressed_; }
+    [[nodiscard]] bool isRightPressed() const noexcept { return rightPressed_; }
+
 private:
     void onReset();
 

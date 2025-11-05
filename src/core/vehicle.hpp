@@ -38,6 +38,7 @@ public:
     [[nodiscard]] float getDriftAngle() const noexcept;  // Get current drift angle for camera
     [[nodiscard]] int getCurrentGear() const noexcept;   // Get current gear number
     [[nodiscard]] float getRPM() const noexcept;         // Get current engine RPM (for UI/audio)
+    [[nodiscard]] float getSteeringInput() const noexcept; // Get current steering input (-1 to 1)
 
     // Setters for collision response
     void setVelocity(float velocity) noexcept;
@@ -63,6 +64,7 @@ private:
 
     float velocity_;                          // Current speed
     float acceleration_;                      // Current acceleration
+    float steeringInput_;                     // Current steering input (-1 to 1)
 
     // Drift state
     bool isDrifting_;                         // Whether car is in drift mode

@@ -25,11 +25,10 @@ namespace {
     constexpr float SIDE_CAM_HEIGHT_BASE = 2.0f;
 
     // Inside/cockpit cam offsets (relative to vehicle scale)
-    constexpr float INSIDE_CAM_FORWARD_OFFSET_BASE = -0.15f;
-    constexpr float INSIDE_CAM_HEIGHT_BASE = 1.4f;
-    constexpr float INSIDE_CAM_SIDE_OFFSET_BASE = 0.45f;
-    constexpr float INSIDE_CAM_LOOK_DISTANCE_BASE = 8.0f;
-    constexpr float CAR_LOWER_AMOUNT = 0.30f;
+    constexpr float INSIDE_CAM_FORWARD_OFFSET_BASE = -0.2f;   // Inside the car (positive = forward)
+    constexpr float INSIDE_CAM_HEIGHT_BASE = 1.05f;          // Eye level height
+    constexpr float INSIDE_CAM_SIDE_OFFSET_BASE = -0.3f;     // Left side (negative = left for driver)
+    constexpr float INSIDE_CAM_LOOK_DISTANCE_BASE = 10.0f;
 
     // Drift camera parameters (relative to vehicle scale)
     constexpr float DRIFT_SIDE_OFFSET_MAX_BASE = 1.5f;
@@ -164,10 +163,8 @@ void SceneManager::setupRenderer(const WindowSize& size) {
 
 void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation,
                                            float vehicleScale, bool nitrousActive, float vehicleVelocity, float driftAngle) {
-    // Update vehicle scale for camera calculations
     currentVehicleScale_ = vehicleScale;
 
-    // Scale all camera parameters based on vehicle size
     const float scaledCameraDistance = BASE_CAMERA_DISTANCE * vehicleScale;
     const float scaledCameraHeight = BASE_CAMERA_HEIGHT * vehicleScale;
     const float scaledHoodCamForwardOffset = HOOD_CAM_FORWARD_OFFSET_BASE * vehicleScale;
@@ -175,12 +172,13 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
     const float scaledHoodCamLookDistance = HOOD_CAM_LOOK_DISTANCE_BASE * vehicleScale;
     const float scaledSideCamDistance = SIDE_CAM_DISTANCE_BASE * vehicleScale;
     const float scaledSideCamHeight = SIDE_CAM_HEIGHT_BASE * vehicleScale;
+    const float scaledDriftSideOffsetMax = DRIFT_SIDE_OFFSET_MAX_BASE * vehicleScale;
+
+    // Inside camera offsets (scaled by vehicle size)
     const float scaledInsideCamForwardOffset = INSIDE_CAM_FORWARD_OFFSET_BASE * vehicleScale;
     const float scaledInsideCamHeight = INSIDE_CAM_HEIGHT_BASE * vehicleScale;
     const float scaledInsideCamSideOffset = INSIDE_CAM_SIDE_OFFSET_BASE * vehicleScale;
     const float scaledInsideCamLookDistance = INSIDE_CAM_LOOK_DISTANCE_BASE * vehicleScale;
-    const float scaledCarLowerAmount = CAR_LOWER_AMOUNT * vehicleScale;
-    const float scaledDriftSideOffsetMax = DRIFT_SIDE_OFFSET_MAX_BASE * vehicleScale;
 
     float desiredCameraX, desiredCameraY, desiredCameraZ;
     float desiredLookAtX, desiredLookAtY, desiredLookAtZ;
@@ -214,7 +212,7 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
     } else if (cameraMode_ == CameraMode::INSIDE) {
         // Inside/cockpit cam - driver's eye position
         desiredCameraX = targetX + (std::sin(targetRotation) * scaledInsideCamForwardOffset);
-        desiredCameraY = targetY + scaledInsideCamHeight - scaledCarLowerAmount;
+        desiredCameraY = targetY + scaledInsideCamHeight;
         desiredCameraZ = targetZ + (std::cos(targetRotation) * scaledInsideCamForwardOffset);
 
         // Apply lateral offset for right-side driving position
@@ -224,7 +222,7 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
 
         // Look ahead from cabin
         desiredLookAtX = targetX + (std::sin(targetRotation) * scaledInsideCamLookDistance);
-        desiredLookAtY = targetY + scaledInsideCamHeight - scaledCarLowerAmount;
+        desiredLookAtY = targetY + scaledInsideCamHeight;
         desiredLookAtZ = targetZ + (std::cos(targetRotation) * scaledInsideCamLookDistance);
 
         driftCameraOffset_ = 0.0f;

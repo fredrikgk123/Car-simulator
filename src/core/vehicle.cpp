@@ -6,6 +6,7 @@ Vehicle::Vehicle(float x, float y, float z)
     : GameObject(x, y, z),
       velocity_(0.0f),
       acceleration_(0.0f),
+      steeringInput_(0.0f),
       isDrifting_(false),
       driftAngle_(0.0f),
       hasNitrous_(false),
@@ -40,6 +41,8 @@ void Vehicle::accelerateBackward() noexcept {
 }
 
 void Vehicle::turn(float amount) noexcept {
+    steeringInput_ = amount; // Store the steering input
+
     float turn_rate = calculateTurnRate();
     rotation_ += amount * VehicleTuning::TURN_SPEED * turn_rate;
 
@@ -201,12 +204,19 @@ void Vehicle::update(float deltaTime) {
 
     // Reset acceleration (must be reapplied each frame)
     acceleration_ = 0.0f;
+
+    // Decay steering input towards zero (natural return to center)
+    steeringInput_ *= 0.85f; // Smoothly return to center when not turning
+    if (std::abs(steeringInput_) < 0.01f) {
+        steeringInput_ = 0.0f;
+    }
 }
 
 void Vehicle::reset() {
     GameObject::reset();
     velocity_ = 0.0f;
     acceleration_ = 0.0f;
+    steeringInput_ = 0.0f;
     isDrifting_ = false;
     driftAngle_ = 0.0f;
     hasNitrous_ = false;
@@ -247,6 +257,10 @@ int Vehicle::getCurrentGear() const noexcept {
 
 float Vehicle::getRPM() const noexcept {
     return rpm_;
+}
+
+float Vehicle::getSteeringInput() const noexcept {
+    return steeringInput_;
 }
 
 void Vehicle::updateGearShifting() noexcept {
