@@ -19,20 +19,26 @@ public:
     void setResetCallback(std::function<void()> callback);
 
     // Get current input state for steering wheel animation
-    [[nodiscard]] bool isLeftPressed() const noexcept { return leftPressed_; }
-    [[nodiscard]] bool isRightPressed() const noexcept { return rightPressed_; }
+    [[nodiscard]] bool isLeftPressed() const noexcept { return steerLeftPressed_; }
+    [[nodiscard]] bool isRightPressed() const noexcept { return steerRightPressed_; }
 
 private:
     void onReset();
+    void updateCamera();
 
     Vehicle& vehicle_;
     SceneManager& sceneManager_;
 
     // Key state tracking
-    bool upPressed_;
-    bool downPressed_;
-    bool leftPressed_;
-    bool rightPressed_;
+    bool wPressed_;
+    bool sPressed_;
+    bool aPressed_;
+    bool dPressed_;
+    bool steerLeftPressed_;
+    bool steerRightPressed_;
+    bool leftArrowPressed_;
+    bool rightArrowPressed_;
+    bool downArrowPressed_;
     bool shiftPressed_;
 
     // Reset callback

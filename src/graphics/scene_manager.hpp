@@ -6,9 +6,7 @@
 // Camera modes
 enum class CameraMode {
     FOLLOW,   // Third-person follow camera
-    HOOD,     // First-person hood camera
-    SIDE,     // Side view camera
-    INSIDE    // Interior / cockpit camera
+    INTERIOR  // Interior / cockpit camera
 };
 
 class SceneManager {
@@ -43,6 +41,9 @@ public:
     void setCameraMode(CameraMode mode) noexcept;
     [[nodiscard]] CameraMode getCameraMode() const noexcept;
     void toggleCameraMode() noexcept;
+    void adjustCameraYaw(float delta);
+    void setCameraYaw(float yaw);
+    void setCameraYawTarget(float yaw);
 
     // Rendering
     void render();
@@ -92,4 +93,9 @@ private:
     // Vehicle scale tracking for camera adjustments
     float currentVehicleScale_;
     float driftCameraOffset_;  // Current side offset for drift camera
+
+    // Camera yaw offset for arrow key control
+    float cameraYawOffset_;
+    float targetCameraYawOffset_;
+    float yawLerpSpeed_;
 };

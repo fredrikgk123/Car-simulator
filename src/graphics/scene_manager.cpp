@@ -92,7 +92,10 @@ SceneManager::SceneManager()
       currentLookAtY_(0.0f),
       currentLookAtZ_(0.0f),
       driftCameraOffset_(0.0f),
-      currentVehicleScale_(1.0f) {
+      currentVehicleScale_(1.0f),
+      cameraYawOffset_(0.0f),
+      targetCameraYawOffset_(0.0f),
+      yawLerpSpeed_(0.1f) {
     scene_ = std::make_shared<Scene>();
     renderer_ = std::make_unique<GLRenderer>();
     renderer_->shadowMap().enabled = true;
@@ -165,6 +168,9 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
                                            float vehicleScale, bool nitrousActive, float vehicleVelocity, float driftAngle) {
     currentVehicleScale_ = vehicleScale;
 
+    // Lerp the camera yaw offset for smooth transitions
+    cameraYawOffset_ += (targetCameraYawOffset_ - cameraYawOffset_) * yawLerpSpeed_;
+
     const float scaledCameraDistance = BASE_CAMERA_DISTANCE * vehicleScale;
     const float scaledCameraHeight = BASE_CAMERA_HEIGHT * vehicleScale;
     const float scaledHoodCamForwardOffset = HOOD_CAM_FORWARD_OFFSET_BASE * vehicleScale;
@@ -183,33 +189,7 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
     float desiredCameraX, desiredCameraY, desiredCameraZ;
     float desiredLookAtX, desiredLookAtY, desiredLookAtZ;
 
-    if (cameraMode_ == CameraMode::HOOD) {
-        // Hood cam - position camera at hood level, slightly forward
-        desiredCameraX = targetX + (std::sin(targetRotation) * scaledHoodCamForwardOffset);
-        desiredCameraY = targetY + scaledHoodCamHeight;
-        desiredCameraZ = targetZ + (std::cos(targetRotation) * scaledHoodCamForwardOffset);
-
-        // Look ahead in the direction vehicle is facing
-        desiredLookAtX = targetX + (std::sin(targetRotation) * scaledHoodCamLookDistance);
-        desiredLookAtY = targetY + scaledHoodCamHeight;
-        desiredLookAtZ = targetZ + (std::cos(targetRotation) * scaledHoodCamLookDistance);
-
-        driftCameraOffset_ = 0.0f;
-    } else if (cameraMode_ == CameraMode::SIDE) {
-        // Side cam - position camera to the side of the vehicle
-        const float sideAngle = targetRotation + (math::PI / 2.0f);
-
-        desiredCameraX = targetX + (std::sin(sideAngle) * scaledSideCamDistance);
-        desiredCameraY = targetY + scaledSideCamHeight;
-        desiredCameraZ = targetZ + (std::cos(sideAngle) * scaledSideCamDistance);
-
-        // Look at the vehicle center
-        desiredLookAtX = targetX;
-        desiredLookAtY = targetY;
-        desiredLookAtZ = targetZ;
-
-        driftCameraOffset_ = 0.0f;
-    } else if (cameraMode_ == CameraMode::INSIDE) {
+    if (cameraMode_ == CameraMode::INTERIOR) {
         // Inside/cockpit cam - driver's eye position
         desiredCameraX = targetX + (std::sin(targetRotation) * scaledInsideCamForwardOffset);
         desiredCameraY = targetY + scaledInsideCamHeight;
@@ -220,10 +200,10 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
         desiredCameraX += std::sin(sideAngle) * scaledInsideCamSideOffset;
         desiredCameraZ += std::cos(sideAngle) * scaledInsideCamSideOffset;
 
-        // Look ahead from cabin
-        desiredLookAtX = targetX + (std::sin(targetRotation) * scaledInsideCamLookDistance);
+        // Look ahead from cabin, adjusted by yaw offset
+        desiredLookAtX = targetX + (std::sin(targetRotation + cameraYawOffset_) * scaledInsideCamLookDistance);
         desiredLookAtY = targetY + scaledInsideCamHeight;
-        desiredLookAtZ = targetZ + (std::cos(targetRotation) * scaledInsideCamLookDistance);
+        desiredLookAtZ = targetZ + (std::cos(targetRotation + cameraYawOffset_) * scaledInsideCamLookDistance);
 
         driftCameraOffset_ = 0.0f;
 
@@ -241,7 +221,7 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
 
         return;
     } else {
-        // Follow cam with drift offset
+        // Follow cam with drift offset and yaw adjustment
         const float absDriftAngle = std::abs(driftAngle);
         float targetDriftOffset = 0.0f;
 
@@ -257,11 +237,12 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
         // Calculate perpendicular direction for side offset
         const float sideAngle = targetRotation + (math::PI / 2.0f);
 
-        // Follow cam - position behind and above vehicle
-        desiredCameraX = targetX - (std::sin(targetRotation) * scaledCameraDistance) +
+        // Follow cam - position behind and above vehicle, adjusted by yaw offset
+        const float adjustedRotation = targetRotation + cameraYawOffset_;
+        desiredCameraX = targetX - (std::sin(adjustedRotation) * scaledCameraDistance) +
                         (std::sin(sideAngle) * driftCameraOffset_);
         desiredCameraY = targetY + scaledCameraHeight;
-        desiredCameraZ = targetZ - (std::cos(targetRotation) * scaledCameraDistance) +
+        desiredCameraZ = targetZ - (std::cos(adjustedRotation) * scaledCameraDistance) +
                         (std::cos(sideAngle) * driftCameraOffset_);
 
         // Look at the vehicle
@@ -322,14 +303,14 @@ void SceneManager::updateCameraFOV(bool nitrousActive, float vehicleVelocity) {
     }
 
     // Adjust the target FOV for cockpit mode (reduced magnitude)
-    if (cameraMode_ == CameraMode::INSIDE) {
+    if (cameraMode_ == CameraMode::INTERIOR) {
         targetFOV = CAMERA_FOV_MIN + (speedRatio * fovRange * COCKPIT_FOV_FACTOR);
         if (nitrousActive) targetFOV += (NITROUS_FOV_BOOST * COCKPIT_NITROUS_FACTOR);
     }
 
     // Compute lerp speed and reduce it when nitrous is active to make the transition smoother
     float lerpSpeed = fovLerpSpeed_;
-    if (cameraMode_ == CameraMode::INSIDE) lerpSpeed *= COCKPIT_FOV_LERP_MULT;
+    if (cameraMode_ == CameraMode::INTERIOR) lerpSpeed *= COCKPIT_FOV_LERP_MULT;
     if (nitrousActive) lerpSpeed *= NITROUS_FOV_LERP_MULT;
 
     // Interpolate current FOV toward target using the computed lerpSpeed (applies also to cockpit now)
@@ -372,11 +353,7 @@ CameraMode SceneManager::getCameraMode() const noexcept {
 
 void SceneManager::toggleCameraMode() noexcept {
     if (cameraMode_ == CameraMode::FOLLOW) {
-        cameraMode_ = CameraMode::HOOD;
-    } else if (cameraMode_ == CameraMode::HOOD) {
-        cameraMode_ = CameraMode::SIDE;
-    } else if (cameraMode_ == CameraMode::SIDE) {
-        cameraMode_ = CameraMode::INSIDE;
+        cameraMode_ = CameraMode::INTERIOR;
     } else {
         cameraMode_ = CameraMode::FOLLOW;
     }
@@ -384,4 +361,17 @@ void SceneManager::toggleCameraMode() noexcept {
 
 void SceneManager::renderMinimap() {
     renderer_->render(*scene_, *minimapCamera_);
+}
+
+void SceneManager::adjustCameraYaw(float delta) {
+    targetCameraYawOffset_ += delta;
+}
+
+void SceneManager::setCameraYaw(float yaw) {
+    targetCameraYawOffset_ = yaw;
+    cameraYawOffset_ = yaw;
+}
+
+void SceneManager::setCameraYawTarget(float yaw) {
+    targetCameraYawOffset_ = yaw;
 }
