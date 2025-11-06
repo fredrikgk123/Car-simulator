@@ -5,10 +5,15 @@ using namespace threepp;
 InputHandler::InputHandler(Vehicle& vehicle, SceneManager& sceneManager)
     : vehicle_(vehicle),
       sceneManager_(sceneManager),
-      upPressed_(false),
-      downPressed_(false),
-      leftPressed_(false),
-      rightPressed_(false),
+      wPressed_(false),
+      sPressed_(false),
+      aPressed_(false),
+      dPressed_(false),
+      steerLeftPressed_(false),
+      steerRightPressed_(false),
+      leftArrowPressed_(false),
+      rightArrowPressed_(false),
+      downArrowPressed_(false),
       shiftPressed_(false),
       resetCallback_(nullptr) {
 }
@@ -24,23 +29,37 @@ void InputHandler::onReset() {
 }
 
 void InputHandler::onKeyPressed(KeyEvent evt) {
-    // Support both arrow keys and WASD
+    // WASD for steering, arrows for camera snaps
     switch (evt.key) {
-        case Key::UP:
         case Key::W:
-            upPressed_ = true;
+            wPressed_ = true;
             break;
-        case Key::DOWN:
         case Key::S:
-            downPressed_ = true;
+            sPressed_ = true;
+            break;
+        case Key::A:
+            aPressed_ = true;
+            steerLeftPressed_ = true;
+            break;
+        case Key::D:
+            dPressed_ = true;
+            steerRightPressed_ = true;
             break;
         case Key::LEFT:
-        case Key::A:
-            leftPressed_ = true;
+            leftArrowPressed_ = true;
+            updateCamera();
             break;
         case Key::RIGHT:
-        case Key::D:
-            rightPressed_ = true;
+            rightArrowPressed_ = true;
+            updateCamera();
+            break;
+        case Key::UP:
+            // Reset camera forward
+            sceneManager_.setCameraYaw(0.0f);
+            break;
+        case Key::DOWN:
+            downArrowPressed_ = true;
+            updateCamera();
             break;
         case Key::SPACE:
             vehicle_.startDrift();
@@ -67,21 +86,31 @@ void InputHandler::onKeyPressed(KeyEvent evt) {
 
 void InputHandler::onKeyReleased(KeyEvent evt) {
     switch (evt.key) {
-        case Key::UP:
         case Key::W:
-            upPressed_ = false;
+            wPressed_ = false;
             break;
-        case Key::DOWN:
         case Key::S:
-            downPressed_ = false;
+            sPressed_ = false;
+            break;
+        case Key::A:
+            aPressed_ = false;
+            steerLeftPressed_ = false;
+            break;
+        case Key::D:
+            dPressed_ = false;
+            steerRightPressed_ = false;
             break;
         case Key::LEFT:
-        case Key::A:
-            leftPressed_ = false;
+            leftArrowPressed_ = false;
+            updateCamera();
             break;
         case Key::RIGHT:
-        case Key::D:
-            rightPressed_ = false;
+            rightArrowPressed_ = false;
+            updateCamera();
+            break;
+        case Key::DOWN:
+            downArrowPressed_ = false;
+            updateCamera();
             break;
         case Key::SPACE:
             vehicle_.stopDrift();
@@ -96,10 +125,10 @@ void InputHandler::onKeyReleased(KeyEvent evt) {
 
 void InputHandler::update(float deltaTime) {
     // Handle acceleration
-    if (upPressed_) {
+    if (wPressed_) {
         // Vehicle now owns the acceleration multiplier; use the simple API
         vehicle_.accelerateForward();
-    } else if (downPressed_) {
+    } else if (sPressed_) {
         vehicle_.accelerateBackward();
     }
 
@@ -107,10 +136,22 @@ void InputHandler::update(float deltaTime) {
     float velocity = vehicle_.getVelocity();
     float turnDirection = (velocity >= 0.0f) ? 1.0f : -1.0f;
 
-    if (leftPressed_) {
+    if (aPressed_) {
         vehicle_.turn(deltaTime * turnDirection);
     }
-    if (rightPressed_) {
+    if (dPressed_) {
         vehicle_.turn(-deltaTime * turnDirection);
+    }
+}
+
+void InputHandler::updateCamera() {
+    if (leftArrowPressed_) {
+        sceneManager_.setCameraYawTarget(1.0f);
+    } else if (rightArrowPressed_) {
+        sceneManager_.setCameraYawTarget(-1.0f);
+    } else if (downArrowPressed_) {
+        sceneManager_.setCameraYaw(3.14159f);
+    } else {
+        sceneManager_.setCameraYaw(0.0f);
     }
 }
