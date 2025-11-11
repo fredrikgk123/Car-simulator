@@ -1,7 +1,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 #include "audio_manager.hpp"
-#include "../core/vehicle.hpp"
+#include "../core/interfaces/IVehicleState.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -63,6 +63,7 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
     ma_result result = ma_engine_init(nullptr, engine.get());
 
     if (result != MA_SUCCESS) {
+        std::cerr << "Failed to initialize audio engine: " << result << std::endl;
         return false;
     }
     engine_ = std::move(engine);
@@ -75,6 +76,7 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
                                      nullptr, nullptr, sound.get());
 
     if (result != MA_SUCCESS) {
+        std::cerr << "Failed to load engine sound from: " << engineSoundPath << " (error: " << result << ")" << std::endl;
         return false;
     }
     engineSound_ = std::move(sound);
@@ -92,6 +94,7 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
     result = ma_sound_init_from_file(engine_.get(), DRIFT_SOUND_PATH.c_str(),
                                      MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION,
                                      nullptr, nullptr, driftSnd.get());
+        std::cerr << "Warning: Failed to load drift sound from: " << DRIFT_SOUND_PATH << " (error: " << result << ")" << std::endl;
 
     if (result != MA_SUCCESS) {
         // driftSnd will be automatically cleaned up
@@ -105,16 +108,16 @@ bool AudioManager::initialize(std::string_view engineSoundPath) {
     return true;
 }
 
-void AudioManager::update(const Vehicle& vehicle) {
+void AudioManager::update(const IVehicleState& vehicleState) {
     if (!initialized_ || !soundLoaded_) {
         return;
     }
 
-    const float rpm = vehicle.getRPM();
-    const int currentGear = vehicle.getCurrentGear();
-    const bool nitrousActive = vehicle.isNitrousActive();
-    const bool isDrifting = vehicle.isDrifting();
-    const float absoluteVelocity = std::abs(vehicle.getVelocity());
+    const float rpm = vehicleState.getRPM();
+    const int currentGear = vehicleState.getCurrentGear();
+    const bool nitrousActive = vehicleState.isNitrousActive();
+    const bool isDrifting = vehicleState.isDrifting();
+    const float absoluteVelocity = std::abs(vehicleState.getVelocity());
 
     // Calculate pitch based on RPM
     constexpr float MIN_RPM = 1000.0f;
@@ -171,7 +174,7 @@ void AudioManager::update(const Vehicle& vehicle) {
     }
 }
 
-float AudioManager::calculateEnginePitch(float velocity, float maxSpeed) const noexcept {
+float AudioManager::calculateEnginePitch(float velocity, float maxSpeed) noexcept {
     float speedRatio = std::min(velocity / maxSpeed, 1.0f);
 
     // Square root creates realistic RPM curve

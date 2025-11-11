@@ -8,7 +8,7 @@
 struct ma_engine;
 struct ma_sound;
 
-class Vehicle;
+class IVehicleState;
 
 class AudioManager {
 public:
@@ -23,10 +23,10 @@ public:
     [[nodiscard]] bool initialize(std::string_view engineSoundPath);
 
     // Update audio based on vehicle state
-    void update(const Vehicle& vehicle);
+    void update(const IVehicleState& vehicleState);
 
 private:
-    [[nodiscard]] float calculateEnginePitch(float velocity, float maxSpeed) const noexcept;
+    [[nodiscard]] static float calculateEnginePitch(float velocity, float maxSpeed) noexcept;
 
     struct AudioDeleter {
         void operator()(ma_engine* engine) const noexcept;
