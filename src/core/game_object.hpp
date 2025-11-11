@@ -15,10 +15,10 @@ public:
     virtual void reset();
 
     // Getters
-    [[nodiscard]] const std::array<float, 3>& getPosition() const noexcept;
-    [[nodiscard]] float getRotation() const noexcept;
+    [[nodiscard]] virtual const std::array<float, 3>& getPosition() const noexcept;
+    [[nodiscard]] virtual float getRotation() const noexcept;
     [[nodiscard]] const std::array<float, 3>& getSize() const noexcept;
-    [[nodiscard]] bool isActive() const noexcept;
+    [[nodiscard]] virtual bool isActive() const noexcept;
 
     // Setters
     void setPosition(float x, float y, float z) noexcept;

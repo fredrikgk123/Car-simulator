@@ -53,11 +53,11 @@ void GameObject::setActive(bool active) noexcept {
 }
 
 bool GameObject::checkCircleCollision(const GameObject& other, float& overlapDistance, float& normalX, float& normalZ) const noexcept {
-    // Simple circle-to-circle collision using the average of width and length as radius
-    // This works well for both square-ish objects (trees) and rectangular objects (vehicles)
+    // Circle collision detection using radius based on the object's size
+    // Radius = sqrt((width/2)^2 + (length/2)^2) to account for rotation
 
-    float this_radius = (size_[0] + size_[2]) / 4.0f;  // Average of width and length, divided by 2
-    float other_radius = (other.size_[0] + other.size_[2]) / 4.0f;
+    float this_radius = std::sqrt((size_[0] / 2.0f) * (size_[0] / 2.0f) + (size_[2] / 2.0f) * (size_[2] / 2.0f));
+    float other_radius = std::sqrt((other.size_[0] / 2.0f) * (other.size_[0] / 2.0f) + (other.size_[2] / 2.0f) * (other.size_[2] / 2.0f));
 
     // Calculate distance between centers
     float distance_x = other.position_[0] - position_[0];
