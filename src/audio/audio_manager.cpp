@@ -3,6 +3,7 @@
 #include "audio_manager.hpp"
 #include "../core/interfaces/IVehicleState.hpp"
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 namespace {
