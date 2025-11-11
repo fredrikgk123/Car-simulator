@@ -2,17 +2,17 @@
 
 #include <threepp/threepp.hpp>
 #include <functional>
-#include "../core/vehicle.hpp"
+#include "../core/interfaces/IControllable.hpp"
 #include "../graphics/scene_manager.hpp"
 
 class InputHandler : public threepp::KeyListener {
 public:
-    explicit InputHandler(Vehicle& vehicle, SceneManager& sceneManager);
+    explicit InputHandler(IControllable& controllable, SceneManager& sceneManager);
 
     void onKeyPressed(threepp::KeyEvent evt) override;
     void onKeyReleased(threepp::KeyEvent evt) override;
 
-    // Apply input to vehicle
+    // Apply input to controllable entity
     void update(float deltaTime);
 
     // Set callback for reset event
@@ -26,7 +26,7 @@ private:
     void onReset();
     void updateCamera();
 
-    Vehicle& vehicle_;
+    IControllable& controllable_;
     SceneManager& sceneManager_;
 
     // Key state tracking

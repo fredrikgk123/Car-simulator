@@ -2,8 +2,8 @@
 
 using namespace threepp;
 
-InputHandler::InputHandler(Vehicle& vehicle, SceneManager& sceneManager)
-    : vehicle_(vehicle),
+InputHandler::InputHandler(IControllable& controllable, SceneManager& sceneManager)
+    : controllable_(controllable),
       sceneManager_(sceneManager),
       wPressed_(false),
       sPressed_(false),
@@ -62,11 +62,11 @@ void InputHandler::onKeyPressed(KeyEvent evt) {
             updateCamera();
             break;
         case Key::SPACE:
-            vehicle_.startDrift();
+            controllable_.startDrift();
             break;
         case Key::F:
             if (!shiftPressed_) {
-                vehicle_.activateNitrous();
+                controllable_.activateNitrous();
                 shiftPressed_ = true;
             }
             break;
@@ -75,7 +75,7 @@ void InputHandler::onKeyPressed(KeyEvent evt) {
             sceneManager_.toggleCameraMode();
             break;
         case Key::R:
-            vehicle_.reset();
+            controllable_.reset();
             // Trigger reset callback to respawn powerups
             onReset();
             break;
@@ -113,7 +113,7 @@ void InputHandler::onKeyReleased(KeyEvent evt) {
             updateCamera();
             break;
         case Key::SPACE:
-            vehicle_.stopDrift();
+            controllable_.stopDrift();
             break;
         case Key::F:
             shiftPressed_ = false;
@@ -126,21 +126,18 @@ void InputHandler::onKeyReleased(KeyEvent evt) {
 void InputHandler::update(float deltaTime) {
     // Handle acceleration
     if (wPressed_) {
-        // Vehicle now owns the acceleration multiplier; use the simple API
-        vehicle_.accelerateForward();
+        // Controllable entity now owns the acceleration multiplier; use the simple API
+        controllable_.accelerateForward();
     } else if (sPressed_) {
-        vehicle_.accelerateBackward();
+        controllable_.accelerateBackward();
     }
 
-    // Handle turning (reverse when moving backwards)
-    float velocity = vehicle_.getVelocity();
-    float turnDirection = (velocity >= 0.0f) ? 1.0f : -1.0f;
-
+    // Handle turning
     if (aPressed_) {
-        vehicle_.turn(deltaTime * turnDirection);
+        controllable_.turn(deltaTime);
     }
     if (dPressed_) {
-        vehicle_.turn(-deltaTime * turnDirection);
+        controllable_.turn(-deltaTime);
     }
 }
 
