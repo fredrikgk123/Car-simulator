@@ -20,7 +20,7 @@ Vehicle::Vehicle(float x, float y, float z)
     size_[1] = VehicleTuning::VEHICLE_HEIGHT;
     size_[2] = VehicleTuning::VEHICLE_LENGTH;
 
-    // Set initial rotation to 180 degrees (π radians) so minimap direction matches
+    // Set initial rotation to 180 degrees (π radians) so vehicle faces down in minimap
     rotation_ = VehicleTuning::INITIAL_ROTATION_RADIANS;
     initialRotation_ = VehicleTuning::INITIAL_ROTATION_RADIANS;
 }
