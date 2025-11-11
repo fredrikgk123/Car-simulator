@@ -3,12 +3,12 @@
 #include <threepp/threepp.hpp>
 
 #include "game_object_renderer.hpp"
-#include "../core/vehicle.hpp"
+#include "../core/interfaces/IVehicleState.hpp"
 #include <string>
 
 class VehicleRenderer : public GameObjectRenderer {
   public:
-    VehicleRenderer(threepp::Scene& scene, const Vehicle& vehicle);
+    VehicleRenderer(threepp::Scene& scene, const IVehicleState& vehicleState);
 
     // Load a 3D model from file (OBJ format)
     bool loadModel(const std::string& modelPath);
@@ -32,7 +32,7 @@ class VehicleRenderer : public GameObjectRenderer {
     void createModel() override;
 
   private:
-    const Vehicle& vehicle_;
+    const IVehicleState& vehicleState_;
     bool useCustomModel_;
     std::shared_ptr<threepp::Object3D> customModelGroup_;
     float modelScale_ = 1.0f; // runtime scale applied to loaded model

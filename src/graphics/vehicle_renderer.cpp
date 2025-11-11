@@ -14,8 +14,6 @@ namespace {
 
     // Steering wheel configuration
     const std::string STEERING_WHEEL_PATH = "assets/steeringwheel.obj";
-    constexpr float STEERING_WHEEL_ROTATION_MULTIPLIER = 15.0f;  // How much the steering wheel rotates relative to steering input
-    constexpr float STEERING_WHEEL_SMOOTHING = 0.15f;           // Lower = smoother but more lag, higher = more responsive but jittery
 
 
     // Wheel positioning: inset from vehicle edges to place wheels under fenders
@@ -30,7 +28,7 @@ namespace {
 
     // Compute per-axis scale factors to make the placeholder body match the visible
     // dimensions of a loaded model. If no custom model is present return 1,1,1.
-    static std::array<float, 3> computeBodyScaleFromModel(const std::shared_ptr<threepp::Object3D>& modelGroup, const std::array<float,3>& vehicleSize) {
+    std::array<float, 3> computeBodyScaleFromModel(const std::shared_ptr<threepp::Object3D>& modelGroup, const std::array<float,3>& vehicleSize) {
         if (!modelGroup) return {1.f, 1.f, 1.f};
         threepp::Box3 bbox;
         bbox.setFromObject(*modelGroup);
@@ -52,9 +50,9 @@ namespace {
     }
 }
 
-VehicleRenderer::VehicleRenderer(Scene& scene, const Vehicle& vehicle)
-    : GameObjectRenderer(scene, vehicle),
-      vehicle_(vehicle),
+VehicleRenderer::VehicleRenderer(Scene& scene, const IVehicleState& vehicleState)
+    : GameObjectRenderer(scene, dynamic_cast<const GameObject&>(vehicleState)),
+      vehicleState_(vehicleState),
       useCustomModel_(false),
       customModelGroup_(nullptr),
       modelScale_(1.f),
@@ -69,7 +67,7 @@ VehicleRenderer::VehicleRenderer(Scene& scene, const Vehicle& vehicle)
         if (auto material = std::dynamic_pointer_cast<MeshPhongMaterial>(bodyMesh_->material())) {
             material->color = Color::red;
         }
-        auto size = vehicle_.getSize();
+        auto size = gameObject_.getSize();
         bodyMesh_->position.y = size[1] / 2.f;
         bodyMesh_->castShadow = true;
     }
@@ -103,7 +101,7 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
         auto originalModelSize = modelBBox.getSize();
 
         // Get the target vehicle dimensions
-        auto vehicleSize = vehicle_.getSize();
+        auto vehicleSize = gameObject_.getSize();
 
         // Calculate scale factors for each axis to match vehicle dimensions
         float scaleX = vehicleSize[0] / originalModelSize.x;
@@ -150,7 +148,7 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
 
         return true;
 
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return false;
     }
 }
@@ -186,7 +184,7 @@ void VehicleRenderer::applyScale(float scale) {
         auto originalModelSize = modelBBox.getSize();
 
         // Get the target vehicle dimensions
-        auto vehicleSize = vehicle_.getSize();
+        auto vehicleSize = gameObject_.getSize();
 
         // Recalculate scale factors
         float scaleX = vehicleSize[0] / originalModelSize.x;
@@ -206,7 +204,7 @@ void VehicleRenderer::applyScale(float scale) {
         applySteeringWheelScaleAndPosition(appliedScale);
 
         if (bodyMesh_) {
-            auto size = vehicle_.getSize();
+            auto size = gameObject_.getSize();
             auto scales = computeBodyScaleFromModel(customModelGroup_, size);
             bodyMesh_->scale.set(scales[0], scales[1], scales[2]);
             bodyMesh_->position.y = (size[1] * scales[1]) / 2.f;
@@ -223,7 +221,7 @@ void VehicleRenderer::applyScale(float scale) {
 }
 
 void VehicleRenderer::createModel() {
-    std::array<float, 3> size = vehicle_.getSize();
+    std::array<float, 3> size = gameObject_.getSize();
 
     auto geometry = BoxGeometry::create(size[0], size[1], size[2]);
     auto material = MeshPhongMaterial::create();
@@ -392,7 +390,7 @@ bool VehicleRenderer::loadWheelModels(const std::string& wheelsDir) {
         }
 
         return allLoaded;
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return false;
     }
 }
@@ -475,7 +473,7 @@ bool VehicleRenderer::loadSteeringWheel(const std::string& steeringWheelPath) {
             }
         }
         return true;
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return false;
     }
 }
@@ -519,7 +517,7 @@ void VehicleRenderer::applySteeringWheelScaleAndPosition(float appliedScale) {
 }
 
 void VehicleRenderer::applyWheelScaleAndPosition(float appliedScale) {
-    std::array<float, 3> size = vehicle_.getSize();
+    std::array<float, 3> size = gameObject_.getSize();
 
     float halfWidth = size[0] * 0.5f;
     float halfLength = size[2] * 0.5f;
@@ -605,22 +603,22 @@ void VehicleRenderer::applyWheelScaleAndPosition(float appliedScale) {
 }
 
 // Update visual elements each frame: position/rotation already handled by base class,
-// but here we also animate wheel spin (rotation around local X) and front wheel yaw.
+// but here we also animate wheel spin (rotation around local axis) and front wheel yaw.
 void VehicleRenderer::update(bool leftPressed, bool rightPressed) {
     GameObjectRenderer::update();
 
-    auto pos = vehicle_.getPosition();
+    auto pos = gameObject_.getPosition();
 
     float dx = pos[0] - prevPosition_[0];
     float dz = pos[2] - prevPosition_[2];
     float distance = std::sqrt(dx * dx + dz * dz);
 
-    std::array<float, 3> size = vehicle_.getSize();
+    std::array<float, 3> size = gameObject_.getSize();
     float wheelRadius = std::max(0.001f, size[1] * actualAppliedScale_ * WHEEL_RADIUS_FACTOR);
 
     float spinDelta = distance / wheelRadius;
 
-    float velocity = vehicle_.getVelocity();
+    float velocity = vehicleState_.getVelocity();
     float spinDir = (velocity >= 0.f) ? 1.f : -1.f;
 
     // Accumulate wheel spin based on distance traveled (dampened for visual effect)
@@ -629,8 +627,8 @@ void VehicleRenderer::update(bool leftPressed, bool rightPressed) {
     if (wheelRL_) wheelSpinRL_ += spinDir * spinDelta * 0.1f;
     if (wheelRR_) wheelSpinRR_ += spinDir * spinDelta * 0.1f;
 
-    // Calculate front wheel steering based PURELY on keyboard input (independent of vehicle physics)
-    // This prevents wheels from turning the wrong way when reversing
+    // Calculate front wheel steering based purely on keyboard input (independent of vehicle physics)
+    // The wheels always turn the same way visually - physics handles the actual turning behavior
     float targetWheelSteerYaw = 0.f;
 
     if (leftPressed && !rightPressed) {
@@ -642,7 +640,7 @@ void VehicleRenderer::update(bool leftPressed, bool rightPressed) {
     }
     // else: both or neither pressed = wheels straight (0)
 
-    // Steering wheel rotation based PURELY on keyboard input (independent of vehicle physics)
+    // Steering wheel rotation based purely on keyboard input (independent of vehicle physics)
     if (steeringWheelPivot_) {
         // Calculate target rotation based on raw key input
         float targetSteeringRotation = 0.f;
@@ -723,4 +721,3 @@ std::array<float, 3> VehicleRenderer::getSteeringWheelPosition() const noexcept 
 bool VehicleRenderer::hasSteeringWheel() const noexcept {
     return steeringWheelPivot_ != nullptr;
 }
-
