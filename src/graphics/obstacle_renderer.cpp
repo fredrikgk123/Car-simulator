@@ -18,22 +18,17 @@ namespace {
 }
 
 ObstacleRenderer::ObstacleRenderer(Scene& scene, const Obstacle& obstacle)
-    : obstacle_(obstacle), scene_(scene) {
+    : GameObjectRenderer(scene, obstacle), obstacle_(obstacle) {
+    createModel();
+}
 
-    obstacleGroup_ = Group::create();
-
+void ObstacleRenderer::createModel() {
     // Create appropriate mesh based on obstacle type
     if (obstacle_.getType() == ObstacleType::WALL) {
         createWallMesh();
     } else if (obstacle_.getType() == ObstacleType::TREE) {
         createTreeMesh();
     }
-
-    // Set initial position
-    const auto& pos = obstacle_.getPosition();
-    obstacleGroup_->position.set(pos[0], pos[1], pos[2]);
-
-    scene_.add(obstacleGroup_);
 }
 
 void ObstacleRenderer::createWallMesh() {
@@ -57,7 +52,7 @@ void ObstacleRenderer::createWallMesh() {
     wallMesh->castShadow = true;
     wallMesh->receiveShadow = true;
 
-    obstacleGroup_->add(wallMesh);
+    objectGroup_->add(wallMesh);
 }
 
 void ObstacleRenderer::createTreeMesh() {
@@ -81,11 +76,11 @@ void ObstacleRenderer::createTreeMesh() {
     foliageMesh->castShadow = true;
     foliageMesh->receiveShadow = true;
 
-    obstacleGroup_->add(trunkMesh);
-    obstacleGroup_->add(foliageMesh);
+    objectGroup_->add(trunkMesh);
+    objectGroup_->add(foliageMesh);
 }
 
 void ObstacleRenderer::update() {
-    // Obstacles are static, no update needed
-    // But method exists for consistency with other renderers
+    // Obstacles are static, but we still call base update for consistency
+    GameObjectRenderer::update();
 }
