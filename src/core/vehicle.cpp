@@ -1,5 +1,6 @@
 #include "vehicle.hpp"
 #include "vehicle_tuning.hpp"
+#include <algorithm>
 #include <cmath>
 
 Vehicle::Vehicle(float x, float y, float z)
