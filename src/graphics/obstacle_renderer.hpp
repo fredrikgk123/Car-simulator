@@ -1,25 +1,26 @@
 #pragma once
 
-#include <threepp/threepp.hpp>
-#include <memory>
+#include "game_object_renderer.hpp"
 #include "../core/obstacle.hpp"
 
 /**
  * ObstacleRenderer - renders obstacles (walls and trees) in the scene
  */
-class ObstacleRenderer {
+class ObstacleRenderer : public GameObjectRenderer {
 public:
     ObstacleRenderer(threepp::Scene& scene, const Obstacle& obstacle);
-    ~ObstacleRenderer() = default;
 
-    void update();
+    // Override update to handle obstacle-specific behavior
+    void update() override;
+
+protected:
+    // Override to create obstacle-specific models
+    void createModel() override;
 
 private:
     void createWallMesh();
     void createTreeMesh();
 
     const Obstacle& obstacle_;
-    threepp::Scene& scene_;
-    std::shared_ptr<threepp::Group> obstacleGroup_;
 };
 
