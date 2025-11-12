@@ -13,7 +13,13 @@ target_link_libraries(run_tests PRIVATE
     Catch2::Catch2WithMain
 )
 
+# Ensure assets are copied before running tests
+add_dependencies(run_tests copy_assets)
+
 # Enable testing
 enable_testing()
-add_test(NAME AllTests COMMAND run_tests)
+
+# Use generator expression to handle multi-config generators (Visual Studio, Xcode)
+# This ensures CTest can find the executable in Release/, Debug/, etc. subdirectories
+add_test(NAME AllTests COMMAND $<TARGET_FILE:run_tests>)
 
