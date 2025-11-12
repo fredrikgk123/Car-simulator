@@ -62,8 +62,28 @@ if(DEFINED imgui_SOURCE_DIR)
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     )
-    target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+    target_include_directories(imgui PUBLIC
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+    )
     target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+
+    # Ensure imgui compiles with proper settings
+    target_compile_features(imgui PUBLIC cxx_std_17)
+
+    # Set position independent code for static library
+    set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+    # Add Windows-specific definitions if needed
+    if(WIN32)
+        target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
+        # Ensure consistent runtime library on Windows
+        if(MSVC)
+            set_target_properties(imgui PROPERTIES
+                MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+            )
+        endif()
+    endif()
 endif()
 
 FetchContent_GetProperties(miniaudio)
