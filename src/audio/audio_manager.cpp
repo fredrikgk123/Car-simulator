@@ -1,10 +1,19 @@
-#define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
 #include "audio_manager.hpp"
 #include "../core/interfaces/IVehicleState.hpp"
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
+
+// Undefine Windows min/max macros that conflict with std::min/std::max
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
 
 
 namespace {
@@ -120,13 +129,13 @@ void AudioManager::update(const IVehicleState& vehicleState) {
     const int currentGear = vehicleState.getCurrentGear();
     const bool nitrousActive = vehicleState.isNitrousActive();
     const bool isDrifting = vehicleState.isDrifting();
-    const float absoluteVelocity = std::abs(vehicleState.getVelocity());
+    const float absoluteVelocity = (std::abs)(vehicleState.getVelocity());
 
     // Calculate pitch based on RPM
     constexpr float MIN_RPM = 1000.0f;
     constexpr float MAX_RPM = 7000.0f;
     float rpmRatio = (rpm - MIN_RPM) / (MAX_RPM - MIN_RPM);
-    rpmRatio = std::clamp(rpmRatio, 0.0f, 1.0f);
+    rpmRatio = (std::clamp)(rpmRatio, 0.0f, 1.0f);
 
     float pitch = ENGINE_PITCH_MIN + (rpmRatio * ENGINE_PITCH_RANGE);
 
@@ -155,7 +164,7 @@ void AudioManager::update(const IVehicleState& vehicleState) {
         volume += NITROUS_VOLUME_BOOST;
     }
 
-    volume = std::min(volume, MAX_VOLUME);
+    volume = (std::min)(volume, MAX_VOLUME);
 
     ma_sound_set_volume(engineSound_.get(), volume);
 
@@ -167,7 +176,7 @@ void AudioManager::update(const IVehicleState& vehicleState) {
             }
             float driftVolume = DRIFT_SOUND_MIN_VOLUME +
                                (absoluteVelocity / BASE_REFERENCE_SPEED) * (DRIFT_SOUND_MAX_VOLUME - DRIFT_SOUND_MIN_VOLUME);
-            driftVolume = std::min(driftVolume, DRIFT_SOUND_MAX_VOLUME);
+            driftVolume = (std::min)(driftVolume, DRIFT_SOUND_MAX_VOLUME);
             ma_sound_set_volume(driftSound_.get(), driftVolume);
         } else {
             if (ma_sound_is_playing(driftSound_.get()) == MA_TRUE) {
@@ -178,8 +187,8 @@ void AudioManager::update(const IVehicleState& vehicleState) {
 }
 
 float AudioManager::calculateEnginePitch(float velocity, float maxSpeed) noexcept {
-    float speedRatio = std::min(velocity / maxSpeed, 1.0f);
+    float speedRatio = (std::min)(velocity / maxSpeed, 1.0f);
 
     // Square root creates realistic RPM curve
-    return ENGINE_PITCH_MIN + (std::sqrt(speedRatio) * ENGINE_PITCH_RANGE);
+    return ENGINE_PITCH_MIN + ((std::sqrt)(speedRatio) * ENGINE_PITCH_RANGE);
 }

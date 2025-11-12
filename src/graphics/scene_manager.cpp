@@ -1,4 +1,5 @@
 #include "scene_manager.hpp"
+#include <algorithm>
 #include <cmath>
 
 using namespace threepp;
@@ -226,7 +227,7 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
         float targetDriftOffset = 0.0f;
 
         if (absDriftAngle > DRIFT_ANGLE_THRESHOLD) {
-            const float driftIntensity = std::min(absDriftAngle / DRIFT_ANGLE_NORMALIZATION, 1.0f);
+            const float driftIntensity = (std::min)(absDriftAngle / DRIFT_ANGLE_NORMALIZATION, 1.0f);
             targetDriftOffset = driftIntensity * scaledDriftSideOffsetMax;
             targetDriftOffset *= (driftAngle > 0) ? 1.0f : -1.0f;
         }
@@ -252,7 +253,7 @@ void SceneManager::updateCameraFollowTarget(float targetX, float targetY, float 
     }
 
     // Velocity-adaptive camera interpolation
-    const float speedFactor = std::min(std::abs(vehicleVelocity) / VELOCITY_LERP_MAX_SPEED, 1.0f);
+    const float speedFactor = (std::min)((std::abs)(vehicleVelocity) / VELOCITY_LERP_MAX_SPEED, 1.0f);
     const float adaptiveLerpSpeed = cameraLerpSpeed_ + (speedFactor * VELOCITY_LERP_SPEED_FACTOR);
 
     // Smoothly interpolate camera position
@@ -288,7 +289,7 @@ void SceneManager::updateMinimapCamera(float targetX, float targetZ, float vehic
 
 void SceneManager::updateCameraFOV(bool nitrousActive, float vehicleVelocity) {
     // Calculate base speed ratio (0..1)
-    float speedRatio = std::min(vehicleVelocity, SPEED_FOR_MAX_FOV) / SPEED_FOR_MAX_FOV;
+    float speedRatio = (std::min)(vehicleVelocity, SPEED_FOR_MAX_FOV) / SPEED_FOR_MAX_FOV;
 
     // Base FOV calculation (speed-based portion)
     float fovRange = CAMERA_FOV_MAX - CAMERA_FOV_MIN;
