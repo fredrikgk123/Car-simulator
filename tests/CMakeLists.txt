@@ -21,5 +21,9 @@ enable_testing()
 
 # Use generator expression to handle multi-config generators (Visual Studio, Xcode)
 # This ensures CTest can find the executable in Release/, Debug/, etc. subdirectories
+# Set working directory to the build directory so assets can be found
 add_test(NAME AllTests COMMAND $<TARGET_FILE:run_tests>)
+set_tests_properties(AllTests PROPERTIES
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+)
 
