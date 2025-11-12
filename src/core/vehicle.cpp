@@ -57,7 +57,7 @@ void Vehicle::turn(float amount) noexcept {
 
         // Increased max drift angle to ~60 degrees for more dramatic slides
         const float MAX_DRIFT_ANGLE = VehicleTuning::PI / 3.0f;  // 60 degrees
-        driftAngle_ = std::clamp(driftAngle_, -MAX_DRIFT_ANGLE, MAX_DRIFT_ANGLE);
+        driftAngle_ = (std::clamp)(driftAngle_, -MAX_DRIFT_ANGLE, MAX_DRIFT_ANGLE);
     }
 
     // Normalize rotation to [0, 2π]
@@ -100,7 +100,7 @@ float Vehicle::calculateTurnRate() const noexcept {
     const float speedRatio = (absoluteVelocity - VehicleTuning::TURN_RATE_MEDIUM_SPEED) / (VehicleTuning::MAX_SPEED - VehicleTuning::TURN_RATE_MEDIUM_SPEED);
     const float turnRate = VehicleTuning::TURN_RATE_HIGH_SPEED_BASE - (speedRatio * VehicleTuning::TURN_RATE_HIGH_SPEED_REDUCTION);
 
-    return std::clamp(turnRate, VehicleTuning::TURN_RATE_HIGH_SPEED_MIN, VehicleTuning::TURN_RATE_HIGH_SPEED_MAX);
+    return (std::clamp)(turnRate, VehicleTuning::TURN_RATE_HIGH_SPEED_MIN, VehicleTuning::TURN_RATE_HIGH_SPEED_MAX);
 }
 
 void Vehicle::activateNitrous() noexcept {
@@ -171,13 +171,13 @@ void Vehicle::updateVelocity(float deltaTime) noexcept {
 
     // Calculate friction multiplier using logarithmic curve
     float speedRatio = std::abs(velocity_) / VehicleTuning::MAX_SPEED;
-    speedRatio = std::clamp(speedRatio, 0.01f, 1.0f); // Prevent log(0)
+    speedRatio = (std::clamp)(speedRatio, 0.01f, 1.0f); // Prevent log(0)
 
     // Logarithmic curve: friction increases as speed decreases
     float logValue = std::log(speedRatio);
     float frictionRange = VehicleTuning::FRICTION_COEFFICIENT - 0.994f;
     float frictionMultiplier = 0.994f + ((logValue + 4.6f) / 4.6f) * frictionRange;
-    frictionMultiplier = std::clamp(frictionMultiplier, 0.994f, VehicleTuning::FRICTION_COEFFICIENT);
+    frictionMultiplier = (std::clamp)(frictionMultiplier, 0.994f, VehicleTuning::FRICTION_COEFFICIENT);
 
     float frictionCoefficient = isDrifting_ ? baseFriction : frictionMultiplier;
     velocity_ *= frictionCoefficient;

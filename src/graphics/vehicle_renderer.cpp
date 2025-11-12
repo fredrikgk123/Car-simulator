@@ -39,13 +39,13 @@ namespace {
         float sy = vehicleSize[1] > 0.f ? (modelSize.y / vehicleSize[1]) : 1.f;
         float sz = vehicleSize[2] > 0.f ? (modelSize.z / vehicleSize[2]) : 1.f;
 
-        sx = std::max(1.f, sx);
-        sy = std::max(1.f, sy);
-        sz = std::max(1.f, sz);
+        sx = (std::max)(1.f, sx);
+        sy = (std::max)(1.f, sy);
+        sz = (std::max)(1.f, sz);
 
-        sx = std::min(sx, MAX_BODY_SCALE_UP);
-        sy = std::min(sy, MAX_BODY_SCALE_UP);
-        sz = std::min(sz, MAX_BODY_SCALE_UP);
+        sx = (std::min)(sx, MAX_BODY_SCALE_UP);
+        sy = (std::min)(sy, MAX_BODY_SCALE_UP);
+        sz = (std::min)(sz, MAX_BODY_SCALE_UP);
 
         return {sx, sy, sz};
     }
@@ -111,7 +111,7 @@ bool VehicleRenderer::loadModel(const std::string& modelPath) {
 
         // Use the average scale to maintain proportions, or use the smallest
         // to ensure the model fits within the collision box
-        float autoScale = std::min({scaleX, scaleY, scaleZ});
+        float autoScale = (std::min)({scaleX, scaleY, scaleZ});
 
         // Apply both the calculated auto-scale and any user-defined modelScale
         float appliedScale = autoScale * modelScale_;
@@ -191,7 +191,7 @@ void VehicleRenderer::applyScale(float scale) {
         float scaleX = vehicleSize[0] / originalModelSize.x;
         float scaleY = vehicleSize[1] / originalModelSize.y;
         float scaleZ = vehicleSize[2] / originalModelSize.z;
-        float autoScale = std::min({scaleX, scaleY, scaleZ});
+        float autoScale = (std::min)({scaleX, scaleY, scaleZ});
 
         // Apply both auto-scale and user scale
         float appliedScale = autoScale * modelScale_;
@@ -615,7 +615,7 @@ void VehicleRenderer::update(bool leftPressed, bool rightPressed) {
     float distance = std::sqrt(dx * dx + dz * dz);
 
     std::array<float, 3> size = gameObject_.getSize();
-    float wheelRadius = std::max(0.001f, size[1] * actualAppliedScale_ * WHEEL_RADIUS_FACTOR);
+    float wheelRadius = (std::max)(0.001f, size[1] * actualAppliedScale_ * WHEEL_RADIUS_FACTOR);
 
     float spinDelta = distance / wheelRadius;
 
