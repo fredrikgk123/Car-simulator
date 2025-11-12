@@ -5,12 +5,13 @@ add_subdirectory(ui)
 add_subdirectory(audio)
 
 add_executable(bilsim main.cpp)
-target_link_libraries(bilsim PUBLIC
+target_link_libraries(bilsim PRIVATE
         core
         graphics
         input
         ui
         audio
-        threepp::threepp
         imgui
+        threepp::threepp
 )
+

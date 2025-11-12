@@ -74,15 +74,11 @@ if(DEFINED imgui_SOURCE_DIR)
     # Set position independent code for static library
     set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-    # Add Windows-specific definitions if needed
-    if(WIN32)
-        target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
-        # Ensure consistent runtime library on Windows
-        if(MSVC)
-            set_target_properties(imgui PROPERTIES
-                MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
-            )
-        endif()
+    # Ensure consistent runtime library on Windows
+    if(MSVC)
+        set_target_properties(imgui PROPERTIES
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+        )
     endif()
 endif()
 
