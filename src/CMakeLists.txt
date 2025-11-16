@@ -13,6 +13,12 @@ target_link_libraries(bilsim PRIVATE
         input
         ui
         audio
-        imgui
         threepp::threepp
 )
+
+# On Windows (MSVC), we need to explicitly link imgui even though it's already
+# linked through ui, because MSVC doesn't automatically resolve symbols from
+# transitive static library dependencies the same way Unix linkers do
+if(MSVC)
+    target_link_libraries(bilsim PRIVATE imgui)
+endif()
