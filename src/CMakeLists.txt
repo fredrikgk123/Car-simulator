@@ -14,11 +14,8 @@ if(TARGET imgui)
 endif()
 
 # Link all required libraries
-# On Windows, we need to explicitly link imgui because MSVC/MinGW don't
-# automatically resolve symbols from transitive static library dependencies
-# Link imgui BEFORE ui to ensure proper symbol resolution
 target_link_libraries(bilsim PRIVATE
-    imgui  # Link imgui FIRST - critical for MSVC symbol resolution
+    imgui  # Link imgui FIRST
     core
     graphics
     input
@@ -27,12 +24,9 @@ target_link_libraries(bilsim PRIVATE
     threepp::threepp
 )
 
-# On MSVC, use /WHOLEARCHIVE to ensure ALL symbols from imgui are included
-# This forces the linker to pull in all object files from imgui.lib, not just
-# the ones directly referenced by bilsim.exe
+# On MSVC, use linker flags to force inclusion of all ImGui symbols
 if(MSVC)
-    target_link_options(bilsim PRIVATE
-        "/WHOLEARCHIVE:$<TARGET_FILE:imgui>"
-    )
+    # Get the output file of imgui library
+    target_link_options(bilsim PRIVATE "/WHOLEARCHIVE:imgui.lib")
 endif()
 
