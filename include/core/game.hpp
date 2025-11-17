@@ -32,8 +32,7 @@ public:
     // Render the game
     void render();
 
-    // Get the game clock (const access)
-    [[nodiscard]] const threepp::Clock& getClock() const noexcept { return clock_; }
+    [[nodiscard]] threepp::Clock& getClock() noexcept { return clock_; }
 
 private:
     // Initialization helpers
