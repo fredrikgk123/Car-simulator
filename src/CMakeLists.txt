@@ -19,7 +19,6 @@ target_link_libraries(bilsim PRIVATE
 # On Windows (MSVC), we need to explicitly link imgui even though it's already
 # linked through ui, because MSVC doesn't automatically resolve symbols from
 # transitive static library dependencies the same way Unix linkers do
-target_link_libraries(ui PRIVATE imgui)
 if(MSVC)
     target_link_libraries(bilsim PRIVATE imgui)
 endif()
