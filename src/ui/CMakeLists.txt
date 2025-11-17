@@ -11,6 +11,23 @@ target_include_directories(ui PUBLIC
 # If FetchContent provided imgui, add its source dir to includes so <imgui.h> resolves
 if(DEFINED imgui_SOURCE_DIR)
     target_include_directories(ui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+
+    # Also compile ImGui implementation files directly into the ui library on Windows/MSVC
+    # to avoid MSVC dropping symbols from transitive static-library dependencies.
+    target_sources(ui PRIVATE
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        # optional demo if needed:
+        # ${imgui_SOURCE_DIR}/imgui_demo.cpp
+        # backend implementations required by our code:
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    )
+
+    # Ensure the ImGui headers/backends are visible to the ui target
+target_include_directories(ui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 endif()
 
 # Link against required libraries
@@ -29,4 +46,3 @@ if(MSVC)
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
     )
 endif()
-
