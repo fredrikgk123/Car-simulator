@@ -19,14 +19,12 @@ if(WIN32)
             ui
             audio
             threepp::threepp
+            imgui              # <-- ensure imgui is explicitly linked on Windows
     )
 
-    # For MSVC, use /WHOLEARCHIVE to ensure all ImGui symbols are included
+    # Optional: for MSVC, force whole-archive on the built imgui .lib if required
     if(MSVC)
-        target_link_options(bilsim PRIVATE /WHOLEARCHIVE:imgui)
-    else()
-        # For MinGW or other Windows compilers, link imgui directly
-        target_link_libraries(bilsim PRIVATE imgui)
+        target_link_options(bilsim PRIVATE "/WHOLEARCHIVE:$<TARGET_FILE:imgui>")
     endif()
 else()
     target_link_libraries(bilsim PRIVATE
@@ -36,5 +34,6 @@ else()
             ui
             audio
             threepp::threepp
+            imgui
     )
 endif()
