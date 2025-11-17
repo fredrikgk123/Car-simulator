@@ -20,6 +20,7 @@ target_link_libraries(ui PUBLIC
     core  # Link against core library for Vehicle class
     imgui  # Link against imgui library for ImGui functions and backend implementations
 )
+target_link_libraries(ui PRIVATE $<TARGET_OBJECTS:imgui>)
 
 # Ensure imgui is built before ui
 add_dependencies(ui imgui)
