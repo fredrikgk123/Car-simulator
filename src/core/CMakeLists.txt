@@ -10,7 +10,7 @@ add_library(core
 )
 
 target_include_directories(core PUBLIC
-        ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 target_link_libraries(core PUBLIC threepp::threepp)

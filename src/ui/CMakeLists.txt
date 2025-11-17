@@ -4,7 +4,6 @@ add_library(ui
     imgui_context.cpp
 )
 
-# Make headers available to other directories
 target_include_directories(ui PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
