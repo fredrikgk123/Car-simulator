@@ -20,3 +20,13 @@ target_link_libraries(bilsim PRIVATE
     threepp::threepp
     imgui  # Explicitly link imgui (ui also links it, but we need it here for Windows)
 )
+
+# On MSVC, use /WHOLEARCHIVE to ensure ALL symbols from imgui are included
+# This forces the linker to pull in all object files from imgui.lib, not just
+# the ones directly referenced by bilsim.exe
+if(MSVC)
+    target_link_options(bilsim PRIVATE
+        "/WHOLEARCHIVE:$<TARGET_FILE:imgui>"
+    )
+endif()
+
