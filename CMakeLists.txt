@@ -50,9 +50,46 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(threepp Catch2)
 FetchContent_MakeAvailable(imgui)
 
-# Note: ImGui sources are compiled directly into the ui library (src/ui/CMakeLists.txt)
-# No separate imgui target needed - FetchContent_MakeAvailable makes imgui_SOURCE_DIR available
-message(STATUS "ImGui sources available at: ${imgui_SOURCE_DIR}")
+# Create imgui library target that ui can link to
+# This ensures GLFW and OpenGL are properly linked
+if(DEFINED imgui_SOURCE_DIR)
+    message(STATUS "Creating ImGui library from: ${imgui_SOURCE_DIR}")
+
+    find_package(OpenGL REQUIRED)
+
+    add_library(imgui STATIC
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    )
+
+    target_include_directories(imgui PUBLIC
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+    )
+
+    # Link imgui to threepp to get GLFW and OpenGL
+    target_link_libraries(imgui PUBLIC threepp::threepp OpenGL::GL)
+
+    # Try to link glfw if available as a target
+    if(TARGET glfw)
+        target_link_libraries(imgui PUBLIC glfw)
+    endif()
+
+    target_compile_features(imgui PUBLIC cxx_std_17)
+    set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+    if(MSVC)
+        set_target_properties(imgui PROPERTIES
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+        )
+    endif()
+
+    message(STATUS "ImGui library target created successfully")
+endif()
 
 FetchContent_GetProperties(miniaudio)
 if(NOT miniaudio_POPULATED)
