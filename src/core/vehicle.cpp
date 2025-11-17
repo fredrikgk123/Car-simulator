@@ -3,6 +3,20 @@
 #include <algorithm>
 #include <cmath>
 
+namespace {
+    // Vehicle update constants
+    constexpr float STOPPED_SPEED_THRESHOLD = 0.1f;           // Speed below which vehicle is considered stopped
+    constexpr float DRIFT_ANGLE_MAX_DEGREES = VehicleTuning::PI / 3.0f;  // 60 degrees max drift angle
+    constexpr float STEERING_DECAY_RATE = 0.85f;              // Rate at which steering returns to center
+    constexpr float STEERING_ZERO_THRESHOLD = 0.01f;          // Below this, steering is set to zero
+    constexpr float MAX_VELOCITY_MULTIPLIER = 1.5f;           // Safety margin for setVelocity clamping
+
+    // Friction calculation constants
+    constexpr float FRICTION_MIN_CLAMP = 0.01f;               // Minimum speed ratio to prevent log(0)
+    constexpr float FRICTION_BASE_VALUE = 0.994f;             // Base friction value
+    constexpr float FRICTION_LOG_OFFSET = 4.6f;               // Logarithmic curve offset
+}
+
 Vehicle::Vehicle(float x, float y, float z)
     : GameObject(x, y, z),
       velocity_(0.0f),
@@ -56,8 +70,7 @@ void Vehicle::turn(float amount) noexcept {
         driftAngle_ += amount * VehicleTuning::TURN_SPEED * turnRate * VehicleTuning::DRIFT_ANGLE_MULTIPLIER * turnDirection;
 
         // Increased max drift angle to ~60 degrees for more dramatic slides
-        const float MAX_DRIFT_ANGLE = VehicleTuning::PI / 3.0f;  // 60 degrees
-        driftAngle_ = (std::clamp)(driftAngle_, -MAX_DRIFT_ANGLE, MAX_DRIFT_ANGLE);
+        driftAngle_ = (std::clamp)(driftAngle_, -DRIFT_ANGLE_MAX_DEGREES, DRIFT_ANGLE_MAX_DEGREES);
     }
 
     // Normalize rotation to [0, 2π]
@@ -171,13 +184,13 @@ void Vehicle::updateVelocity(float deltaTime) noexcept {
 
     // Calculate friction multiplier using logarithmic curve
     float speedRatio = std::abs(velocity_) / VehicleTuning::MAX_SPEED;
-    speedRatio = (std::clamp)(speedRatio, 0.01f, 1.0f); // Prevent log(0)
+    speedRatio = (std::clamp)(speedRatio, FRICTION_MIN_CLAMP, 1.0f); // Prevent log(0)
 
     // Logarithmic curve: friction increases as speed decreases
     float logValue = std::log(speedRatio);
-    float frictionRange = VehicleTuning::FRICTION_COEFFICIENT - 0.994f;
-    float frictionMultiplier = 0.994f + ((logValue + 4.6f) / 4.6f) * frictionRange;
-    frictionMultiplier = (std::clamp)(frictionMultiplier, 0.994f, VehicleTuning::FRICTION_COEFFICIENT);
+    float frictionRange = VehicleTuning::FRICTION_COEFFICIENT - FRICTION_BASE_VALUE;
+    float frictionMultiplier = FRICTION_BASE_VALUE + ((logValue + FRICTION_LOG_OFFSET) / FRICTION_LOG_OFFSET) * frictionRange;
+    frictionMultiplier = (std::clamp)(frictionMultiplier, FRICTION_BASE_VALUE, VehicleTuning::FRICTION_COEFFICIENT);
 
     float frictionCoefficient = isDrifting_ ? baseFriction : frictionMultiplier;
     velocity_ *= frictionCoefficient;
@@ -189,7 +202,7 @@ void Vehicle::updateVelocity(float deltaTime) noexcept {
 
 void Vehicle::updateRPM() noexcept {
     float absoluteVelocity = std::abs(velocity_);
-    if (absoluteVelocity < 0.1f) {
+    if (absoluteVelocity < STOPPED_SPEED_THRESHOLD) {
         // Idle RPM when stopped
         rpm_ = VehicleTuning::IDLE_RPM;
     } else if (currentGear_ > 0 && currentGear_ <= VehicleTuning::NUM_GEARS) {
@@ -230,8 +243,8 @@ void Vehicle::decayAcceleration() noexcept {
     acceleration_ = 0.0f;
 
     // Decay steering input towards zero (natural return to center)
-    steeringInput_ *= 0.85f;
-    if (std::abs(steeringInput_) < 0.01f) {
+    steeringInput_ *= STEERING_DECAY_RATE;
+    if (std::abs(steeringInput_) < STEERING_ZERO_THRESHOLD) {
         steeringInput_ = 0.0f;
     }
 }
@@ -269,7 +282,7 @@ float Vehicle::getMaxSpeed() noexcept {
 
 void Vehicle::setVelocity(float velocity) noexcept {
     // Clamp velocity to reasonable bounds to prevent physics bugs
-    const float MAX_VELOCITY = VehicleTuning::MAX_SPEED * 1.5f;  // Allow slight overspeed
+    const float MAX_VELOCITY = VehicleTuning::MAX_SPEED * MAX_VELOCITY_MULTIPLIER;  // Allow slight overspeed
     velocity_ = std::clamp(velocity, -MAX_VELOCITY, MAX_VELOCITY);
 }
 

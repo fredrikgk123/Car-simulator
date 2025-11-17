@@ -6,17 +6,34 @@
 #include <string_view>
 #include <cfloat>
 
+namespace {
+    // Color conversion constant
+    constexpr float COLOR_BYTE_MULTIPLIER = 255.0f;
+
+    // Speed conversion constant
+    constexpr float MS_TO_KMH = 3.6f;  // m/s to km/h conversion factor
+
+    // Degrees to radians conversion constant (π/180)
+    constexpr float DEG_TO_RAD = 0.017453292519943295769f;
+
+    // Gauge drawing constants
+    constexpr float GAUGE_THICKNESS_BASE = 4.0f;
+    constexpr float GAUGE_THICKNESS_SCALE = 0.04f;
+    constexpr float GAUGE_OUTER_MARGIN_BASE = 6.0f;
+    constexpr float GAUGE_OUTER_MARGIN_SCALE = 0.06f;
+}
+
 ImGuiLayer::ImGuiLayer() = default;
 
 static inline ImU32 toU32(const ImVec4 &c) noexcept {
-    return IM_COL32(static_cast<int>(c.x * 255.0f),
-                    static_cast<int>(c.y * 255.0f),
-                    static_cast<int>(c.z * 255.0f),
-                    static_cast<int>(c.w * 255.0f));
+    return IM_COL32(static_cast<int>(c.x * COLOR_BYTE_MULTIPLIER),
+                    static_cast<int>(c.y * COLOR_BYTE_MULTIPLIER),
+                    static_cast<int>(c.z * COLOR_BYTE_MULTIPLIER),
+                    static_cast<int>(c.w * COLOR_BYTE_MULTIPLIER));
 }
 
 // Convert degrees to radians (constexpr helper)
-static inline constexpr float deg2rad(float deg) noexcept { return deg * 0.017453292519943295769f; }
+static inline constexpr float deg2rad(float deg) noexcept { return deg * DEG_TO_RAD; }
 
 void ImGuiLayer::render(const IVehicleState& vehicle, const threepp::WindowSize& size) {
     if (!ImGui::GetCurrentContext()) return;
@@ -25,7 +42,7 @@ void ImGuiLayer::render(const IVehicleState& vehicle, const threepp::WindowSize&
     constexpr float MAX_DISPLAY_SPEED_KMH = 150.0f;
     constexpr float MAX_RPM = 7000.0f;
 
-    const float speedKmh = std::abs(vehicle.getVelocity()) * 3.6f;
+    const float speedKmh = std::abs(vehicle.getVelocity()) * MS_TO_KMH;
     const float speedRatio = std::clamp(speedKmh / MAX_DISPLAY_SPEED_KMH, 0.0f, 1.0f);
     const float rpm = vehicle.getRPM();
     const float rpmRatio = std::clamp(rpm / MAX_RPM, 0.0f, 1.0f);
@@ -41,7 +58,7 @@ void ImGuiLayer::render(const IVehicleState& vehicle, const threepp::WindowSize&
         const bool isRPM = (label_sv == "RPM");
 
         // scale many of the drawing constants with radius so the gauge is fully scalable
-        const float thickness = std::max(4.0f, radius * 0.04f);
+        const float thickness = std::max(GAUGE_THICKNESS_BASE, radius * GAUGE_THICKNESS_SCALE);
         const float a1 = deg2rad(-120.0f);
         const float a2 = deg2rad(120.0f);
 
@@ -50,13 +67,13 @@ void ImGuiLayer::render(const IVehicleState& vehicle, const threepp::WindowSize&
 
         // Outer arc (empty)
         dl->PathClear();
-        dl->PathArcTo(center, radius - std::max(6.0f, radius * 0.06f), a1, a2, 64);
+        dl->PathArcTo(center, radius - std::max(GAUGE_OUTER_MARGIN_BASE, radius * GAUGE_OUTER_MARGIN_SCALE), a1, a2, 64);
         dl->PathStroke(toU32(ImVec4(0.25f, 0.25f, 0.25f, 0.9f)), false, thickness);
 
         // Filled arc based on ratio
         if (ratio > 1e-6f) {
             dl->PathClear();
-            dl->PathArcTo(center, radius - std::max(6.0f, radius * 0.06f), a1, a1 + (a2 - a1) * ratio, 64);
+            dl->PathArcTo(center, radius - std::max(GAUGE_OUTER_MARGIN_BASE, radius * GAUGE_OUTER_MARGIN_SCALE), a1, a1 + (a2 - a1) * ratio, 64);
             dl->PathStroke(color, false, thickness + std::max(1.0f, radius * 0.02f));
         }
 

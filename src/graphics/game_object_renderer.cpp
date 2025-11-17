@@ -3,6 +3,7 @@
 
 using namespace threepp;
 
+
 GameObjectRenderer::GameObjectRenderer(Scene &scene, const GameObject &gameObject)
     : scene_(scene),
       gameObject_(gameObject) {
