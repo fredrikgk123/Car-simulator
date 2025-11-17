@@ -8,6 +8,16 @@ target_include_directories(ui PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
 
+# Link against required libraries FIRST so their headers are available
+target_link_libraries(ui PUBLIC
+    threepp::threepp  # Provides GLFW headers needed by ImGui and imgui_context.cpp
+    core
+)
+
+# Link OpenGL for ImGui backends
+find_package(OpenGL REQUIRED)
+target_link_libraries(ui PUBLIC OpenGL::GL)
+
 # If FetchContent provided imgui sources, compile them directly into ui
 if(DEFINED imgui_SOURCE_DIR)
     target_include_directories(ui PUBLIC
@@ -28,15 +38,6 @@ if(DEFINED imgui_SOURCE_DIR)
     message(STATUS "UI: Compiling ImGui sources directly into ui library")
 endif()
 
-# Link against required libraries
-target_link_libraries(ui PUBLIC
-    threepp::threepp
-    core
-)
-
-# Link OpenGL for ImGui backends
-find_package(OpenGL REQUIRED)
-target_link_libraries(ui PUBLIC OpenGL::GL)
 
 # Ensure consistent MSVC runtime library
 if(MSVC)
