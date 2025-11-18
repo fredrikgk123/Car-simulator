@@ -9,7 +9,7 @@ add_executable(bilsim main.cpp)
 target_include_directories(bilsim PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # Link all required libraries
-# imgui is now an OBJECT library, so its object files will be included directly
+# ImGui is now compiled directly into the ui library
 target_link_libraries(bilsim PRIVATE
     core
     graphics
@@ -17,7 +17,6 @@ target_link_libraries(bilsim PRIVATE
     ui
     audio
     threepp::threepp
-    imgui  # OBJECT library - includes .obj files directly into bilsim
 )
 
 

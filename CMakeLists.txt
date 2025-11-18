@@ -50,50 +50,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(threepp Catch2)
 FetchContent_MakeAvailable(imgui)
 
-# Create imgui library target that ui can link to
-# This ensures GLFW and OpenGL are properly linked
-if(DEFINED imgui_SOURCE_DIR)
-    message(STATUS "Creating ImGui library from: ${imgui_SOURCE_DIR}")
-
-    find_package(OpenGL REQUIRED)
-
-    # Use OBJECT library instead of STATIC for better MSVC symbol resolution
-    add_library(imgui OBJECT
-        ${imgui_SOURCE_DIR}/imgui.cpp
-        ${imgui_SOURCE_DIR}/imgui_draw.cpp
-        ${imgui_SOURCE_DIR}/imgui_tables.cpp
-        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-    )
-
-    target_include_directories(imgui PUBLIC
-        ${imgui_SOURCE_DIR}
-        ${imgui_SOURCE_DIR}/backends
-    )
-
-    # Link imgui to threepp to get GLFW and OpenGL
-    target_link_libraries(imgui PUBLIC threepp::threepp OpenGL::GL)
-
-    # Try to link glfw if available as a target
-    if(TARGET glfw)
-        target_link_libraries(imgui PUBLIC glfw)
-        message(STATUS "ImGui: Linked to glfw target")
-    endif()
-
-    target_compile_features(imgui PUBLIC cxx_std_17)
-    set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-    if(MSVC)
-        set_target_properties(imgui PROPERTIES
-            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
-        )
-        message(STATUS "ImGui: Configured for MSVC with matching runtime library (OBJECT library)")
-    endif()
-
-    message(STATUS "ImGui OBJECT library target created successfully")
-else()
+# ImGui will be compiled directly into the ui library
+# Just verify that FetchContent succeeded
+if(NOT DEFINED imgui_SOURCE_DIR)
     message(FATAL_ERROR "imgui_SOURCE_DIR not defined - FetchContent failed to download ImGui")
+else()
+    message(STATUS "ImGui fetched successfully from: ${imgui_SOURCE_DIR}")
 endif()
 
 FetchContent_GetProperties(miniaudio)

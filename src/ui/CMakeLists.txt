@@ -1,25 +1,25 @@
-# Create a library for UI components
+# ImGui sources to compile into the ui library
+set(IMGUI_SOURCES
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+# Create a library for UI components with ImGui sources included
 add_library(ui STATIC
     imgui_layer.cpp
     imgui_context.cpp
+    ${IMGUI_SOURCES}
 )
 
 target_include_directories(ui PUBLIC
     ${CMAKE_SOURCE_DIR}/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
-
-# Add ImGui include directories so imgui.h can be found
-if(DEFINED imgui_SOURCE_DIR)
-    target_include_directories(ui PUBLIC
-        ${imgui_SOURCE_DIR}
-        ${imgui_SOURCE_DIR}/backends
-    )
-endif()
-
-# Include ImGui object files (created as an OBJECT library in the top-level CMake) so
-# ui will contain ImGui implementation objects and resolve ImGui symbols at link time.
-# This consumes the OBJECT library produced by the top-level `imgui` target.
-target_sources(ui PRIVATE $<TARGET_OBJECTS:imgui>)
 
 # Ensure OpenGL is available and link against required libraries
 find_package(OpenGL REQUIRED)
