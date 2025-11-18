@@ -1,1 +1,30 @@
-**Kandidatnummer:** [LEGG INN DITT KANDIDATNUMMER HER]\n\n## Introduction\n\nBilsimulator is a 3D vehicle simulator built with modern C++20 and advanced graphics rendering. The application demonstrates arcade-style vehicle physics, dynamic audio feedback, and a modular software architecture designed for extensibility and maintainability. \n\nPlayers control a vehicle in a 3D environment with speed-sensitive steering, drift mechanics, and nitrous boost pickups. The simulation features real-time collision detection, dynamic camera systems, and responsive audio that adjusts to vehicle speed and state. The project emphasizes clean code architecture with separation of concerns, comprehensive unit testing, and adherence to modern C++ best practices.\n\n### Key Features\n- Arcade-style vehicle physics with velocity-based movement\n- Speed-sensitive steering for authentic driving feel\n- Drift mechanics with angle accumulation and decay\n- Nitrous boost powerup system\n- Dynamic camera with follow and hood-cam modes\n- 2D AABB collision detection for powerup collection\n- Speed-reactive audio engine with pitch and volume modulation\n- Custom 7-segment digital speedometer (0-150 km/h)\n- Top-down minimap for spatial awareness\n- Real-time shadow rendering\n\n### Controls\n- **W/↑**: Accelerate forward\n- **S/↓**: Brake/Reverse\n- **A/←**: Turn left\n- **D/→**: Turn right\n- **Space**: Drift\n- **F**: Activate nitrous (when available)\n- **C**: Toggle camera mode\n- **R**: Reset vehicle\n\n## Technical Stack\n\n- **Language**: C++20\n- **Graphics**: threepp (C++ port of three.js) [1]\n- **Audio**: miniaudio [2]\n- **Testing**: Catch2 v3 [3]\n- **Build System**: CMake\n\n## References\n\n### Primary Libraries & Frameworks\n\n[1] Hjermann, M. (2024). *threepp: C++20 port of three.js (r129)*. GitHub. https://github.com/markaren/threepp\n\n[2] Mackron, D. (2024). *miniaudio: Single file audio playback and capture library*. GitHub. https://github.com/mackron/miniaudio\n\n[3] Catch2 Contributors. (2024). *Catch2 v3: Modern C++ test framework for unit-tests, TDD and BDD*. GitHub. https://github.com/catchorg/Catch2\n\n## Project Structure\n\n(Truncated for brevity)\n\n<!-- ci: trigger workflow -->
+# Bilsimulator 🏎️
+
+A 3D car simulator built with C++20.
+
+## Features
+
+- 3D car driving with realistic physics
+- Drifting and nitrous boost
+- Multiple camera views
+- Sound effects
+- Collision detection
+
+## Controls
+
+- **W/S** - Forward/Backward
+- **A/D** - Turn left/right (steering)
+- **Space** - Drift
+- **F** - Nitrous boost
+- **C** - Change camera
+- **Arrow Keys** - Look directions (camera control)
+- **R** - Respawn
+- **ESC** - Exit game
+
+## Architecture
+
+### UML Diagram
+
+![UML Diagram](docs/umldiagram.png)
+
+For more details, see [ARCHITECTURE_AND_CONVENTIONS.md](docs/ARCHITECTURE_AND_CONVENTIONS.md).
