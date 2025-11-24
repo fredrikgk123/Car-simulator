@@ -5,35 +5,35 @@
 #include <iostream>
 #include <stdexcept>
 
-ImGuiContext::ImGuiContext(void* windowPtr)
+ImGuiContextWrapper::ImGuiContextWrapper(void* windowPtr)
     : instance_(nullptr), initialized_(false) {
 
     if (!windowPtr) {
-        throw std::invalid_argument("ImGuiContext: windowPtr cannot be null");
+        throw std::invalid_argument("ImGuiContextWrapper: windowPtr cannot be null");
     }
 
     try {
         // Create threepp's ImguiContext with an empty lambda
         // The actual UI content will be drawn by ImGuiLayer between newFrame() and render()
-        instance_ = std::make_unique<ImguiFunctionalContext>(windowPtr, []() {});
+        instance_ = std::make_unique<ImguiContextImpl>(windowPtr, []() {});
         initialized_ = true;
     } catch (const std::exception& e) {
-        std::cerr << "ImGuiContext initialization failed: " << e.what() << std::endl;
+        std::cerr << "ImGuiContextWrapper initialization failed: " << e.what() << std::endl;
         throw std::runtime_error(std::string("Failed to initialize ImGui: ") + e.what());
     } catch (...) {
-        std::cerr << "ImGuiContext initialization failed with unknown error" << std::endl;
+        std::cerr << "ImGuiContextWrapper initialization failed with unknown error" << std::endl;
         throw std::runtime_error("Failed to initialize ImGui: unknown error");
     }
 }
 
-ImGuiContext::~ImGuiContext() {
+ImGuiContextWrapper::~ImGuiContextWrapper() {
     // Smart pointer automatically cleans up resources
     // No manual cleanup needed - RAII handles everything
     instance_.reset();
     initialized_ = false;
 }
 
-void ImGuiContext::newFrame() {
+void ImGuiContextWrapper::newFrame() {
     // threepp's ImguiContext::render() calls these internally, but we need them
     // separately for our rendering flow
     if (!initialized_ || !instance_) {
@@ -45,7 +45,7 @@ void ImGuiContext::newFrame() {
     ImGui::NewFrame();
 }
 
-void ImGuiContext::render() {
+void ImGuiContextWrapper::render() {
     if (!initialized_ || !instance_) {
         return;
     }
@@ -53,4 +53,3 @@ void ImGuiContext::render() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
-

@@ -2,7 +2,7 @@
 
 **Candidate Number:** [YOUR CANDIDATE NUMBER]
 
-> **Note:** AI assistance (GitHub Copilot) was used for audio engine integration, 3D rendering pipeline, and RAII resource management patterns. Core game logic, physics, and collision systems were independently implemented.
+> **Note:** AI assistance (GitHub Copilot) was used for audio engine integration, 3D rendering pipeline, RAII resource management patterns, cleanup and some comments. Core game logic, physics, and collision systems were mainly independently implemented.
 
 ---
 
@@ -49,33 +49,6 @@ Built with:
 
 ---
 
-## How do I use it?
-
-### Build
-
-```bash
-git clone [repository-url]
-cd bilsim
-mkdir build && cd build
-cmake ..
-cmake --build .
-# or reuse the configured directory
-cmake --build ../cmake-build-debug-cmake --target bilsim
-```
-
-### Run
-
-```bash
-./cmake-build-debug-cmake/src/bilsim
-```
-
-### Test
-
-```bash
-cd cmake-build-debug-cmake
-ctest --output-on-failure
-```
-
 ### Controls
 
 | Key | Action                              |
@@ -100,7 +73,8 @@ ctest --output-on-failure
 
 ### What I'm satisfied with
 
-[FILL IN – e.g., modern C++ practices, modular design, physics fidelity, audio integration, tests]
+To start off with I would say that i`m happy with making a functional 3D car simulator. The task was quite intimidating considering my prior experience with OOP was very limited.
+However, I feel that I managed to break down the problem into smaller parts and implement them one by one.
 
 ### Areas for improvement
 

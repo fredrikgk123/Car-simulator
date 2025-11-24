@@ -16,7 +16,7 @@ int main() {
 
         // Initialize ImGui with RAII - automatic cleanup on scope exit
         std::cout << "Initializing ImGui..." << std::endl;
-        auto imguiContext = std::make_unique<ImGuiContext>(canvas.windowPtr());
+        auto imguiContext = std::make_unique<ImGuiContextWrapper>(canvas.windowPtr());
 
         if (!imguiContext->isInitialized()) {
             std::cerr << "Error: ImGui initialization failed" << std::endl;
