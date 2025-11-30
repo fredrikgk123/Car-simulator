@@ -21,7 +21,7 @@ public:
     virtual void reset() noexcept override;
 
     // Get count of active powerups
-    virtual size_t getCount() const override;
+    [[nodiscard]] virtual size_t getCount() const noexcept override;
 
     // Get all powerups (for rendering)
     [[nodiscard]] const std::vector<std::unique_ptr<Powerup>>& getPowerups() const noexcept;

@@ -59,6 +59,6 @@ const std::vector<std::unique_ptr<Powerup>>& PowerupManager::getPowerups() const
     return powerups_;
 }
 
-size_t PowerupManager::getCount() const {
+size_t PowerupManager::getCount() const noexcept {
     return powerups_.size();
 }

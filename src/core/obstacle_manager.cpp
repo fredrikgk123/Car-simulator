@@ -116,6 +116,6 @@ const std::vector<std::unique_ptr<Obstacle>>& ObstacleManager::getObstacles() co
     return obstacles_;
 }
 
-size_t ObstacleManager::getCount() const {
+size_t ObstacleManager::getCount() const noexcept {
     return obstacles_.size();
 }

@@ -65,8 +65,9 @@ void Vehicle::turn(float amount) noexcept {
     rotation_ += amount * VehicleTuning::TURN_SPEED * turnRate * turnDirection;
 
     // When drifting, allow the car to build up a drift angle
+    // Drift angle = difference between car orientation and movement direction
     if (isDrifting_) {
-        // Accumulate drift angle more aggressively
+        // Accumulate drift angle more aggressively (multiplied by DRIFT_ANGLE_MULTIPLIER)
         driftAngle_ += amount * VehicleTuning::TURN_SPEED * turnRate * VehicleTuning::DRIFT_ANGLE_MULTIPLIER * turnDirection;
 
         // Increased max drift angle to ~60 degrees for more dramatic slides
@@ -207,6 +208,8 @@ void Vehicle::updateRPM() noexcept {
         rpm_ = VehicleTuning::IDLE_RPM;
     } else if (currentGear_ > 0 && currentGear_ <= VehicleTuning::NUM_GEARS) {
         // Calculate RPM based on speed within current gear's range
+        // RPM = IDLE + (speed - gearMinSpeed) / (gearMaxSpeed - gearMinSpeed) * (MAX_RPM - IDLE)
+        // This maps the current speed within the gear range to an RPM value
         float gearMinSpeed = VehicleTuning::GEAR_SPEEDS[currentGear_ - 1];
         float gearMaxSpeed = VehicleTuning::GEAR_SPEEDS[currentGear_];
         float speedRatio = (absoluteVelocity - gearMinSpeed) / (gearMaxSpeed - gearMinSpeed);
@@ -318,6 +321,7 @@ void Vehicle::updateGearShifting() noexcept {
     }
 
     // Automatic gear shifting based on speed
+    // Each gear has a speed range defined in GEAR_SPEEDS array
     // Shift up when reaching the upper speed threshold for current gear
     if (currentGear_ < VehicleTuning::NUM_GEARS && absoluteVelocity >= VehicleTuning::GEAR_SPEEDS[currentGear_]) {
         currentGear_++;

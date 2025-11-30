@@ -28,7 +28,7 @@ public:
     virtual void reset() noexcept override;
 
     // Get count of obstacles
-    virtual size_t getCount() const override;
+    [[nodiscard]] virtual size_t getCount() const noexcept override;
 
 private:
     void generateWalls(float playAreaSize);
