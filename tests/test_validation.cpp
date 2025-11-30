@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "core/vehicle.hpp"
 #include "audio/audio_manager.hpp"
+#include <cmath>
 
 using Catch::Approx;
 
@@ -143,7 +144,7 @@ TEST_CASE("Vehicle reset functionality", "[vehicle][reset]") {
     }
 }
 
-TEST_CASE("Vehicle gear system", "[vehicle][gears]") {
+TEST_CASE("Vehicle gear system validation", "[vehicle][gears][validation]") {
     Vehicle vehicle(0.0f, 0.0f, 0.0f);
 
     SECTION("Starts in gear 1") {
@@ -199,4 +200,3 @@ TEST_CASE("Vehicle update with large deltaTime", "[vehicle][edge-cases]") {
         REQUIRE(std::abs(pos[2]) < 1000.0f);
     }
 }
-
