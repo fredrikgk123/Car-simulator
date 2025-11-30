@@ -25,10 +25,12 @@ add_dependencies(run_tests copy_assets)
 # Enable testing
 enable_testing()
 
-# Use generator expression to handle multi-config generators (Visual Studio, Xcode)
-# This ensures CTest can find the executable in Release/, Debug/, etc. subdirectories
-# Set working directory to the build directory so assets can be found
-add_test(NAME AllTests COMMAND $<TARGET_FILE:run_tests>)
+# Add test with proper generator expression for multi-config builds
+# The working directory should be where the executable is located
+add_test(NAME AllTests COMMAND run_tests)
+
+# Set working directory to the location of the executable
+# This works for both single-config (Makefile/Ninja) and multi-config (Visual Studio/Xcode) generators
 set_tests_properties(AllTests PROPERTIES
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:run_tests>
 )
