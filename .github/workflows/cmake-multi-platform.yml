@@ -106,20 +106,21 @@ jobs:
       - name: Configure and build
         run: |
           cmake . -A x64 -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release --verbose
+          cmake --build build --config Release
 
       - name: List all build outputs
+        shell: cmd
         run: |
-          echo "=== Listing build directory structure ==="
+          echo === Listing build directory structure ===
           dir build\tests /s
-          echo "=== Checking if run_tests.exe exists ==="
-          if exist "build\tests\Release\run_tests.exe" (echo "Found run_tests.exe") else (echo "run_tests.exe NOT FOUND")
+          echo === Checking if run_tests.exe exists ===
+          if exist "build\tests\Release\run_tests.exe" (echo Found run_tests.exe) else (echo run_tests.exe NOT FOUND)
         continue-on-error: true
 
       - name: Test
         run: |
-          cd build/tests/Release
-          .\run_tests.exe
+          cd build
+          ctest -C Release --output-on-failure
 
   macos:
     runs-on: macos-14  # Updated to macOS 14 (M1, Xcode 15+, CMake 3.28+)
