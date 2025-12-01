@@ -18,13 +18,11 @@ Powerup::Powerup(float x, float y, float z, PowerupType type)
 }
 
 void Powerup::update(float deltaTime) {
-    // Rotate powerup for visual effect
-    if (active_) {
-        rotation_ += rotationSpeed_ * deltaTime;
+    // Rotate powerup for visual effect (always rotate, even if inactive)
+    rotation_ += rotationSpeed_ * deltaTime;
 
-        // Keep rotation in [0, 2π]
-        rotation_ = std::fmod(rotation_, VehicleTuning::TWO_PI);
-    }
+    // Keep rotation in [0, 2π]
+    rotation_ = std::fmod(rotation_, VehicleTuning::TWO_PI);
 }
 
 PowerupType Powerup::getType() const noexcept {
