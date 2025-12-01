@@ -13,7 +13,16 @@ GameObject::GameObject(float x, float y, float z)
       rotation_(0.0f),
       initialRotation_(0.0f),
       size_({1.0f, 1.0f, 1.0f}),
+      collisionRadius_(0.0f),
       active_(true) {
+    updateCollisionRadius();
+}
+
+void GameObject::updateCollisionRadius() noexcept {
+    // Calculate radius = sqrt((width/2)^2 + (length/2)^2) to account for rotation
+    const float halfWidth = size_[0] / 2.0f;
+    const float halfLength = size_[2] / 2.0f;
+    collisionRadius_ = std::sqrt(halfWidth * halfWidth + halfLength * halfLength);
 }
 
 void GameObject::reset() noexcept {
@@ -53,28 +62,22 @@ void GameObject::setActive(bool active) noexcept {
 }
 
 bool GameObject::checkCircleCollision(const GameObject& other, float& overlapDistance, float& normalX, float& normalZ) const noexcept {
-    // Circle collision detection using radius based on the object's size
-    // Radius = sqrt((width/2)^2 + (length/2)^2) to account for rotation
-
-    float thisRadius = std::sqrt((size_[0] / 2.0f) * (size_[0] / 2.0f) + (size_[2] / 2.0f) * (size_[2] / 2.0f));
-    float otherRadius = std::sqrt((other.size_[0] / 2.0f) * (other.size_[0] / 2.0f) + (other.size_[2] / 2.0f) * (other.size_[2] / 2.0f));
+    // Use cached collision radii instead of recalculating
+    const float radiusSum = collisionRadius_ + other.collisionRadius_;
 
     // Calculate distance between centers
-    float distanceX = other.position_[0] - position_[0];
-    float distanceZ = other.position_[2] - position_[2];
-    float distanceSquared = distanceX * distanceX + distanceZ * distanceZ;
-    float distance = std::sqrt(distanceSquared);
+    const float distanceX = other.position_[0] - position_[0];
+    const float distanceZ = other.position_[2] - position_[2];
+    const float distanceSquared = distanceX * distanceX + distanceZ * distanceZ;
 
-    // Check collision
-    float radiusSum = thisRadius + otherRadius;
-
-    if (distance < radiusSum && distance > MIN_DISTANCE_EPSILON) {
-        // Calculate overlap and normal
-        overlapDistance = radiusSum - distance;
-        normalX = distanceX / distance;
-        normalZ = distanceZ / distance;
-        return true;
+    // Early exit using squared distance to avoid unnecessary sqrt
+    const float radiusSumSquared = radiusSum * radiusSum;
+    if (distanceSquared > radiusSumSquared) {
+        return false;  // No collision
     }
+
+    // Only calculate sqrt when we know there's a collision
+    const float distance = std::sqrt(distanceSquared);
 
     // Handle case where objects are at same position
     if (distance <= MIN_DISTANCE_EPSILON) {
@@ -84,7 +87,11 @@ bool GameObject::checkCircleCollision(const GameObject& other, float& overlapDis
         return true;
     }
 
-    return false;
+    // Calculate overlap and normal
+    overlapDistance = radiusSum - distance;
+    normalX = distanceX / distance;
+    normalZ = distanceZ / distance;
+    return true;
 }
 
 bool GameObject::intersects(const GameObject& other) const noexcept {
