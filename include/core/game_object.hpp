@@ -41,6 +41,12 @@ protected:
     // Size for collision detection (width, height, length)
     std::array<float, 3> size_;
 
+    // Cached collision radius (computed from size)
+    float collisionRadius_;
+
     // Active state
     bool active_;
+
+    // Recalculate collision radius when size changes
+    void updateCollisionRadius() noexcept;
 };
