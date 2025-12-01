@@ -75,6 +75,16 @@ add_custom_target(copy_assets ALL
     COMMENT "Copying assets to build directory"
     VERBATIM
 )
+
+# For multi-config generators (Visual Studio, Xcode), also copy to config subdirectories
+add_custom_command(TARGET copy_assets POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:bilsim>/assets
+    COMMENT "Copying assets to bilsim output directory"
+    VERBATIM
+)
+
 add_dependencies(bilsim copy_assets)
 
 message(STATUS "bilsim configured successfully with audio support (miniaudio)")

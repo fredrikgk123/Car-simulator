@@ -22,6 +22,15 @@ target_link_libraries(run_tests PRIVATE
 # Ensure assets are copied before running tests
 add_dependencies(run_tests copy_assets)
 
+# For multi-config generators, copy assets to the test executable directory
+add_custom_command(TARGET run_tests POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:run_tests>/assets
+    COMMENT "Copying assets to test output directory"
+    VERBATIM
+)
+
 # Enable testing
 enable_testing()
 
