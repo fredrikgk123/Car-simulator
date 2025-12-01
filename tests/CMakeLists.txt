@@ -34,12 +34,16 @@ add_custom_command(TARGET run_tests POST_BUILD
 # Enable testing
 enable_testing()
 
-# Add test with proper generator expression for multi-config builds
-# The working directory should be where the executable is located
-add_test(NAME AllTests COMMAND run_tests)
+# Add test - Use $<TARGET_FILE:run_tests> to get the full path to the executable
+# Set working directory to where the executable is located (where assets are copied)
+add_test(NAME AllTests
+    COMMAND $<TARGET_FILE:run_tests>
+)
 
-# Set working directory to the location of the executable
-# This works for both single-config (Makefile/Ninja) and multi-config (Visual Studio/Xcode) generators
+# Set the working directory to the directory containing the test executable
+# This ensures the test can find assets in the relative "assets/" subdirectory
+# For multi-config generators (Visual Studio), this will be build/tests/Release or build/tests/Debug
+# For single-config generators (Ninja, Makefiles), this will be build/tests
 set_tests_properties(AllTests PROPERTIES
     WORKING_DIRECTORY $<TARGET_FILE_DIR:run_tests>
 )
