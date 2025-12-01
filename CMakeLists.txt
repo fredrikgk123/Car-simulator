@@ -60,9 +60,11 @@ endif()
 
 add_subdirectory(src)
 
-# Enable testing
-enable_testing()
+# Add tests subdirectory FIRST to define the run_tests executable
 add_subdirectory(tests)
+
+# Enable testing AFTER the test executable is defined
+enable_testing()
 
 # Ensure test executable is built by default (critical for CI/CD)
 # This makes run_tests part of the default ALL target
