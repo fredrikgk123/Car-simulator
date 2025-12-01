@@ -155,4 +155,3 @@ TEST_CASE("GameObject size properties", "[gameobject]") {
         REQUIRE(size1[2] == size2[2]);
     }
 }
-
