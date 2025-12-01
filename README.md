@@ -74,7 +74,9 @@ Built with:
 
 ### What I'm satisfied with
 
-First of all I am satisfied with making a functional 3D car simulator in C++. The task was quite intimidating at first, considering my little prior knowledge about OOP, but breaking it down into smaller components made it manageable. I like how the simulator look and feels, with responsive controls and a decent driving experience. The integration of audio and UI elements also adds to the overall immersion.
+First of all I am satisfied with making a functional 3D car simulator in C++. The task was quite intimidating at first, considering my little prior knowledge about OOP, but breaking it down into smaller components made it manageable. I like how the simulator look and feels, with responsive controls and a decent driving experience. The integration of audio and UI elements also adds to the overall immersion. I am also very happy with the code structure and organization. Using classes to encapsulate different systems (car, physics, audio, UI) made it easier to manage complexity and keep related functionality together.
+
+I am also very happy with the car model, continaing separate parts for body, wheels and steering wheel. This allowed me to implement dynamic wheel rotation and steering animations, which adds a lot to the visual feedback while driving. Also see through windows was a nice touch.
 
 
 ### Areas for improvement
