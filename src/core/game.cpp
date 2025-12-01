@@ -131,6 +131,10 @@ void Game::initializeUI() {
 }
 
 void Game::update(float deltaTime) {
+    // Clamp deltaTime to prevent physics explosions from extreme values
+    // Max 100ms per frame (equivalent to 10 FPS minimum)
+    deltaTime = std::clamp(deltaTime, 0.0f, 0.1f);
+
     // Check for window resize
     auto size = canvas_.size();
     if (size.width() != lastWindowWidth_ || size.height() != lastWindowHeight_) {

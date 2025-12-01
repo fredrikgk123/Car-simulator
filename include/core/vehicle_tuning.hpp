@@ -1,10 +1,14 @@
 #pragma once
 
 #include <numbers>
-#include <array>
 #include "object_sizes.hpp"
 
 namespace VehicleTuning {
+
+// Mathematical constants (must be defined first)
+inline constexpr float PI = std::numbers::pi_v<float>;
+inline constexpr float TWO_PI = 2.0f * PI;
+inline constexpr float INITIAL_ROTATION_RADIANS = PI;
 
 // Physics constants
 inline constexpr float MAX_SPEED = 55.56f;
@@ -15,6 +19,25 @@ inline constexpr float BACKWARD_ACCELERATION = -4.0f;
 inline constexpr float FRICTION_COEFFICIENT = 0.9982f;
 inline constexpr float DRIFT_FRICTION_COEFFICIENT = 0.992f;
 inline constexpr float MIN_SPEED_THRESHOLD = 0.1f;
+
+// Steering constants
+inline constexpr float STEERING_DECAY_RATE = 0.85f;              // Rate at which steering returns to center
+inline constexpr float STEERING_ZERO_THRESHOLD = 0.01f;          // Below this, steering is set to zero
+
+// Drift constants
+inline constexpr float DRIFT_ANGLE_MAX_RADIANS = PI / 3.0f;      // 60 degrees (π/3 radians) max drift angle
+inline constexpr float DRIFT_ANGLE_MULTIPLIER = 1.2f;
+inline constexpr float DRIFT_EXIT_RETENTION = 0.5f;
+inline constexpr float DRIFT_DECAY_RATE = 0.95f;
+
+// Velocity constants
+inline constexpr float MAX_VELOCITY_MULTIPLIER = 1.5f;           // Safety margin for setVelocity clamping
+inline constexpr float DEFAULT_SCALE = 1.0f;                     // Default vehicle scale
+
+// Friction calculation constants
+inline constexpr float FRICTION_MIN_CLAMP = 0.01f;               // Minimum speed ratio to prevent log(0)
+inline constexpr float FRICTION_BASE_VALUE = 0.994f;             // Base friction value (empirically tuned for smooth deceleration)
+inline constexpr float FRICTION_LOG_OFFSET = 4.6f;               // Logarithmic curve offset (empirically tuned for realistic speed decay)
 
 // Nitrous constants
 inline constexpr float NITROUS_DURATION = 5.0f;
@@ -30,9 +53,6 @@ inline constexpr float VEHICLE_LENGTH = ObjectSizes::VEHICLE_LENGTH;
 inline constexpr float TURN_RATE_MIN_SPEED = 0.3f;
 inline constexpr float TURN_RATE_LOW_SPEED = 3.0f;
 inline constexpr float TURN_RATE_MEDIUM_SPEED = 15.0f;
-inline constexpr float DRIFT_ANGLE_MULTIPLIER = 1.2f;
-inline constexpr float DRIFT_EXIT_RETENTION = 0.5f;
-inline constexpr float DRIFT_DECAY_RATE = 0.95f;
 
 // Turn rate calculation curve constants
 inline constexpr float TURN_RATE_EXTREMELY_LOW_BASE = 0.05f;
@@ -89,9 +109,5 @@ static_assert(GEAR_SPEEDS[0] < GEAR_SPEEDS[1] &&
               GEAR_SPEEDS[2] < GEAR_SPEEDS[3] &&
               GEAR_SPEEDS[3] < GEAR_SPEEDS[4],
               "GEAR_SPEEDS must be strictly increasing to prevent division by zero in RPM calculations");
-
-inline constexpr float PI = std::numbers::pi_v<float>;
-inline constexpr float TWO_PI = 2.0f * PI;
-inline constexpr float INITIAL_ROTATION_RADIANS = PI;
 
 } // namespace VehicleTuning
