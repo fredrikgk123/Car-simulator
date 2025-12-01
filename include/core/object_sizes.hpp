@@ -9,7 +9,6 @@ inline constexpr float VEHICLE_LENGTH = 2.0f;
 
 // Wall dimensions
 inline constexpr float WALL_LENGTH = 5.0f;
-inline constexpr float WALL_HEIGHT = 5.0f;
 inline constexpr float WALL_THICKNESS = 2.0f;
 
 // Tree dimensions (collision radius)
