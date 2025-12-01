@@ -39,16 +39,11 @@ add_custom_command(TARGET run_tests POST_BUILD
 # Enable testing
 enable_testing()
 
-# Add test - Use $<TARGET_FILE:run_tests> to get the full path to the executable
-# Set working directory to where the executable is located (where assets are copied)
-add_test(NAME AllTests
-    COMMAND $<TARGET_FILE:run_tests>
-)
+# Add test - Don't set WORKING_DIRECTORY with generator expressions as it causes issues
+# with Visual Studio generators trying to evaluate the directory before the build completes
+add_test(NAME AllTests COMMAND run_tests)
 
-# Set the working directory to the directory containing the test executable
-# This ensures the test can find assets in the relative "assets/" subdirectory
-# For multi-config generators (Visual Studio), this will be build/tests/Release or build/tests/Debug
-# For single-config generators (Ninja, Makefiles), this will be build/tests
-set_tests_properties(AllTests PROPERTIES
-    WORKING_DIRECTORY $<TARGET_FILE_DIR:run_tests>
-)
+# Instead of using generator expressions in WORKING_DIRECTORY, we'll rely on:
+# 1. The test executable running from wherever CTest invokes it
+# 2. Assets being copied to the test output directory via POST_BUILD command above
+# 3. The executable being in the same directory as the assets folder
