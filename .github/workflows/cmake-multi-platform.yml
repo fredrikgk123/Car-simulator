@@ -106,8 +106,7 @@ jobs:
       - name: Configure and build
         run: |
           cmake . -A x64 -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release --target bilsim
-          cmake --build build --config Release --target run_tests
+          cmake --build build --config Release --target ALL_BUILD
 
       - name: Test
         run: |
