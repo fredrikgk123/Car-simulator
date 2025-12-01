@@ -65,6 +65,7 @@ VehicleRenderer::VehicleRenderer(Scene& scene, const IVehicleState& vehicleState
       wheelFR_(nullptr),
       wheelRL_(nullptr),
       wheelRR_(nullptr) {
+
     GameObjectRenderer::createModel();
 
     if (bodyMesh_) {
@@ -718,10 +719,9 @@ std::array<float, 3> VehicleRenderer::getSteeringWheelPosition() const noexcept 
         auto pos = steeringWheelPivot_->position;
         return {pos.x, pos.y, pos.z};
     }
-    // Default fallback position if no steering wheel
-    return {0.f, 0.3f, 0.5f};
+    return {0.0f, 0.0f, 0.0f};
 }
 
 bool VehicleRenderer::hasSteeringWheel() const noexcept {
-    return steeringWheelPivot_ != nullptr;
+    return steeringWheelPivot_ && steeringWheel_;
 }
