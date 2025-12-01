@@ -1,5 +1,6 @@
 #include "core/obstacle.hpp"
 #include "core/object_sizes.hpp"
+#include "core/game_config.hpp"
 
 
 Obstacle::Obstacle(float x, float y, float z, ObstacleType type, WallOrientation orientation)
@@ -10,10 +11,10 @@ Obstacle::Obstacle(float x, float y, float z, ObstacleType type, WallOrientation
         // Walls have different dimensions based on orientation
         if (orientation_ == WallOrientation::HORIZONTAL) {
             // Horizontal walls (North/South): extend along X axis
-            size_ = {ObjectSizes::WALL_LENGTH, ObjectSizes::WALL_HEIGHT, ObjectSizes::WALL_THICKNESS};
+            size_ = {ObjectSizes::WALL_LENGTH, GameConfig::Obstacle::WALL_HEIGHT, ObjectSizes::WALL_THICKNESS};
         } else {
             // Vertical walls (East/West): extend along Z axis
-            size_ = {ObjectSizes::WALL_THICKNESS, ObjectSizes::WALL_HEIGHT, ObjectSizes::WALL_LENGTH};
+            size_ = {ObjectSizes::WALL_THICKNESS, GameConfig::Obstacle::WALL_HEIGHT, ObjectSizes::WALL_LENGTH};
         }
     } else if (type_ == ObstacleType::TREE) {
         // Use smaller diameter for collision detection - easier to navigate
