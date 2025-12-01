@@ -134,7 +134,7 @@ void InputHandler::update(float deltaTime) {
         controllable_.accelerateBackward();
     }
 
-    // Handle turning
+    // Handle turning - deltaTime provides frame-independent turning speed
     if (aPressed_) {
         controllable_.turn(deltaTime);
     }
