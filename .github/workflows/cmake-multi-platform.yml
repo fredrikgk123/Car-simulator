@@ -106,12 +106,17 @@ jobs:
       - name: Configure and build
         run: |
           cmake . -A x64 -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release --target ALL_BUILD
+          cmake --build build --config Release
+
+      - name: List build output
+        run: |
+          dir build\tests\Release
+        continue-on-error: true
 
       - name: Test
         run: |
-          cd build
-          ctest -C Release --output-on-failure
+          cd build/tests/Release
+          .\run_tests.exe
 
   macos:
     runs-on: macos-14  # Updated to macOS 14 (M1, Xcode 15+, CMake 3.28+)
