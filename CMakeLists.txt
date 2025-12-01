@@ -51,12 +51,7 @@ FetchContent_Declare(
 set(CATCH_CONFIG_NO_POSIX_SIGNALS ON CACHE BOOL "Disable POSIX signals in Catch2")
 set(CATCH_CONFIG_NO_WINDOWS_SEH ON CACHE BOOL "Disable Windows SEH in Catch2")
 
-FetchContent_MakeAvailable(threepp Catch2)
-
-FetchContent_GetProperties(miniaudio)
-if(NOT miniaudio_POPULATED)
-    FetchContent_Populate(miniaudio)
-endif()
+FetchContent_MakeAvailable(threepp Catch2 miniaudio)
 
 add_subdirectory(src)
 
