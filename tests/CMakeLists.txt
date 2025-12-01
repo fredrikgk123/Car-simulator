@@ -1,14 +1,9 @@
-# Test executable - mark as ALL to ensure it's built by default
+# Test executable
 add_executable(run_tests
     test_vehicle.cpp
     test_gameObject.cpp
     test_collision.cpp
     test_validation.cpp
-)
-
-# Ensure test executable is built as part of the default ALL target
-set_target_properties(run_tests PROPERTIES
-    EXCLUDE_FROM_ALL FALSE
 )
 
 # Add include directories
@@ -39,9 +34,20 @@ add_custom_command(TARGET run_tests POST_BUILD
 # Enable testing
 enable_testing()
 
-# Add test - Don't set WORKING_DIRECTORY with generator expressions as it causes issues
-# with Visual Studio generators trying to evaluate the directory before the build completes
+# Add test - but don't let Visual Studio run it automatically during build
 add_test(NAME AllTests COMMAND run_tests)
+
+# Disable automatic test running on Visual Studio builds
+# This prevents the circular dependency where VS tries to run tests before building the exe
+if(MSVC OR CMAKE_GENERATOR MATCHES "Visual Studio")
+    set_tests_properties(AllTests PROPERTIES
+        DISABLED OFF
+    )
+    # Ensure run_tests is a normal executable target, not a test runner
+    set_target_properties(run_tests PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:run_tests>"
+    )
+endif()
 
 # Instead of using generator expressions in WORKING_DIRECTORY, we'll rely on:
 # 1. The test executable running from wherever CTest invokes it

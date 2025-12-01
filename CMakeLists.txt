@@ -64,6 +64,15 @@ add_subdirectory(src)
 enable_testing()
 add_subdirectory(tests)
 
+# Ensure test executable is built by default (critical for CI/CD)
+# This makes run_tests part of the default ALL target
+if(TARGET run_tests)
+    set_target_properties(run_tests PROPERTIES
+        EXCLUDE_FROM_ALL OFF
+        EXCLUDE_FROM_DEFAULT_BUILD OFF
+    )
+endif()
+
 # Copy assets directory to build directory
 add_custom_target(copy_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory

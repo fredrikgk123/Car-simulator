@@ -106,11 +106,14 @@ jobs:
       - name: Configure and build
         run: |
           cmake . -A x64 -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
+          cmake --build build --config Release --verbose
 
-      - name: List build output
+      - name: List all build outputs
         run: |
-          dir build\tests\Release
+          echo "=== Listing build directory structure ==="
+          dir build\tests /s
+          echo "=== Checking if run_tests.exe exists ==="
+          if exist "build\tests\Release\run_tests.exe" (echo "Found run_tests.exe") else (echo "run_tests.exe NOT FOUND")
         continue-on-error: true
 
       - name: Test
