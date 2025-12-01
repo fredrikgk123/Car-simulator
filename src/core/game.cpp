@@ -122,7 +122,6 @@ void Game::initializeAudio() {
 
     if (!audioManager_->initialize("assets/carnoise.wav")) {
         Logger::warning("Failed to initialize audio system");
-        std::cerr << "Warning: Failed to initialize audio system" << std::endl;
         audioEnabled_ = false;
     }
 }
@@ -267,4 +266,3 @@ void Game::renderUI() {
     // Render ImGui overlay
     imguiLayer_->render(*vehicle_, size);
 }
-
