@@ -4,6 +4,8 @@ add_executable(run_tests
     test_gameObject.cpp
     test_collision.cpp
     test_validation.cpp
+    test_managers.cpp
+    test_obstacle_powerup.cpp
 )
 
 # Add include directories
