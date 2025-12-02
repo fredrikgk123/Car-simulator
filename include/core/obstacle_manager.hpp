@@ -15,12 +15,12 @@ class ObstacleManager : public GameObjectManager {
 public:
     ObstacleManager(float playAreaSize, int treeCount);
 
-    virtual void update(float deltaTime) override;
-    virtual void handleCollisions(Vehicle& vehicle) override;
-    virtual void reset() noexcept override;
+    void update(float deltaTime) override;
+    void handleCollisions(Vehicle& vehicle) override;
+    void reset() noexcept override;
 
     [[nodiscard]] const std::vector<std::unique_ptr<Obstacle>>& getObstacles() const noexcept;
-    [[nodiscard]] virtual size_t getCount() const noexcept override;
+    [[nodiscard]] size_t getCount() const noexcept override;
 
 private:
     void generateWalls(float playAreaSize);

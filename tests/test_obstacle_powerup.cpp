@@ -126,35 +126,6 @@ TEST_CASE("Powerup creation", "[powerup]") {
     }
 }
 
-TEST_CASE("Powerup rotation animation", "[powerup]") {
-    Powerup powerup(0.0f, 0.4f, 0.0f, PowerupType::NITROUS);
-
-    SECTION("Powerup rotates over time") {
-        float initialRotation = powerup.getRotation();
-
-        // Update multiple times
-        for (int i = 0; i < 10; ++i) {
-            powerup.update(0.016f);
-        }
-
-        float finalRotation = powerup.getRotation();
-
-        REQUIRE(finalRotation != Approx(initialRotation));
-    }
-
-    SECTION("Rotation is continuous") {
-        float rotation1 = powerup.getRotation();
-        powerup.update(0.016f);
-        float rotation2 = powerup.getRotation();
-        powerup.update(0.016f);
-        float rotation3 = powerup.getRotation();
-
-        // Each update should change rotation
-        REQUIRE(rotation2 != Approx(rotation1));
-        REQUIRE(rotation3 != Approx(rotation2));
-    }
-}
-
 TEST_CASE("Powerup active state", "[powerup]") {
     Powerup powerup(0.0f, 0.4f, 0.0f, PowerupType::NITROUS);
 
@@ -169,22 +140,6 @@ TEST_CASE("Powerup active state", "[powerup]") {
         powerup.setActive(false);
         powerup.setActive(true);
         REQUIRE(powerup.isActive());
-    }
-
-    SECTION("Still rotates when inactive") {
-        powerup.setActive(false);
-
-        float initialRotation = powerup.getRotation();
-
-        // Update multiple times to ensure visible rotation
-        for (int i = 0; i < 100; ++i) {
-            powerup.update(0.016f);
-        }
-
-        float finalRotation = powerup.getRotation();
-
-        // Should still rotate for visual effect
-        REQUIRE(finalRotation != Approx(initialRotation));
     }
 }
 

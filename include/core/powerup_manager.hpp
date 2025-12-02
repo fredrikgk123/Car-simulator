@@ -7,24 +7,24 @@
 #include <memory>
 
 /**
- * Manages powerup spawning, updates, and collection.
+ * Manages powerup spawning and collection.
  * Handles collision detection between vehicle and powerups.
  */
 class PowerupManager : public GameObjectManager {
 public:
     PowerupManager(int count, float playAreaSize);
 
-    // Update all powerups
-    virtual void update(float deltaTime) override;
+    // Required by base class - powerups are static objects
+    void update(float deltaTime) override;
 
     // Check and handle collisions with vehicle
-    virtual void handleCollisions(Vehicle& vehicle) override;
+    void handleCollisions(Vehicle& vehicle) override;
 
     // Reset all powerups to active state
-    virtual void reset() noexcept override;
+    void reset() noexcept override;
 
     // Get count of active powerups
-    [[nodiscard]] virtual size_t getCount() const noexcept override;
+    [[nodiscard]] size_t getCount() const noexcept override;
 
     // Get all powerups (for rendering)
     [[nodiscard]] const std::vector<std::unique_ptr<Powerup>>& getPowerups() const noexcept;

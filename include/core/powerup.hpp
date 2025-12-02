@@ -8,7 +8,7 @@ enum class PowerupType {
 
 /**
  * Collectible powerups (nitrous boost).
- * Spins slowly for visual effect.
+ * Static cylindrical objects that can be collected by the vehicle.
  */
 class Powerup : public GameObject {
 public:
@@ -20,5 +20,4 @@ public:
 
 private:
     PowerupType type_;
-    float rotationSpeed_;
 };

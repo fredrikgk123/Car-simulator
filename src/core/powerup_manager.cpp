@@ -20,9 +20,7 @@ void PowerupManager::generatePowerups(int count, float playAreaSize) {
 }
 
 void PowerupManager::update(float deltaTime) {
-    for (auto& powerup : powerups_) {
-        powerup->update(deltaTime);
-    }
+    // Powerups are static objects - no updates needed
 }
 
 void PowerupManager::handleCollisions(Vehicle& vehicle) {
