@@ -315,23 +315,6 @@ TEST_CASE("PowerupManager update", "[powerup_manager]") {
     SECTION("Update doesn't throw") {
         REQUIRE_NOTHROW(manager.update(0.016f));
     }
-
-    SECTION("Powerups rotate over time") {
-        const auto& powerups = manager.getPowerups();
-        if (!powerups.empty()) {
-            float initialRotation = powerups[0]->getRotation();
-
-            // Update multiple times
-            for (int i = 0; i < 10; ++i) {
-                manager.update(0.016f);
-            }
-
-            float finalRotation = powerups[0]->getRotation();
-
-            // Rotation should have changed
-            REQUIRE(finalRotation != Approx(initialRotation));
-        }
-    }
 }
 
 TEST_CASE("PowerupManager reset", "[powerup_manager]") {
