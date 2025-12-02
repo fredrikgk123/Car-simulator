@@ -1,6 +1,6 @@
 # Car Simulator
 
-**Candidate Number:** 10020
+**Candidate Number:** 
 
 **Note:** AI assistance (GitHub Copilot) was used for audio engine integration, 3D rendering pipeline, building unit test and RAII resource management patterns. Core game logic, physics, and collision systems were mostly independently implemented.
 
