@@ -4,17 +4,15 @@
 #include "core/obstacle.hpp"
 
 /**
- * ObstacleRenderer - renders obstacles (walls and trees) in the scene
+ * Renders obstacles (walls and trees) with appropriate 3D models.
  */
 class ObstacleRenderer : public GameObjectRenderer {
 public:
     ObstacleRenderer(threepp::Scene& scene, const Obstacle& obstacle);
 
-    // Override update to handle obstacle-specific behavior
     void update() override;
 
 protected:
-    // Override to create obstacle-specific models
     void createModel() override;
 
 private:
@@ -23,4 +21,3 @@ private:
 
     const Obstacle& obstacle_;
 };
-

@@ -3,6 +3,9 @@
 #include "graphics/game_object_renderer.hpp"
 #include "core/powerup.hpp"
 
+/**
+ * Renders powerups with distinctive visual appearance (glowing cylinder).
+ */
 class PowerupRenderer : public GameObjectRenderer {
 public:
     PowerupRenderer(threepp::Scene& scene, const Powerup& powerup);

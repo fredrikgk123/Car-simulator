@@ -5,12 +5,12 @@ add_subdirectory(input)
 add_subdirectory(ui)
 add_subdirectory(audio)
 
-add_executable(bilsim main.cpp)
-target_include_directories(bilsim PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_executable(carsimulator main.cpp)
+target_include_directories(carsimulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # Link all required libraries
 # ImGui is now compiled directly into the ui library
-target_link_libraries(bilsim PRIVATE
+target_link_libraries(carsimulator PRIVATE
     core
     graphics
     input
@@ -18,5 +18,3 @@ target_link_libraries(bilsim PRIVATE
     audio
     threepp::threepp
 )
-
-

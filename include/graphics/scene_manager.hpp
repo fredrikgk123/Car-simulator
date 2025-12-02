@@ -9,15 +9,19 @@
 // Camera modes
 enum class CameraMode {
     FOLLOW,   // Third-person follow camera
-    INTERIOR  // Interior / cockpit camera
+    INTERIOR  // First-person cockpit camera
 };
 
+/**
+ * Manages 3D scene, cameras, lighting, and rendering.
+ * Supports multiple camera modes with smooth interpolation and FOV adjustments.
+ */
 class SceneManager {
 public:
     SceneManager();
     ~SceneManager() = default;
 
-    // Non-copyable (manages renderer and scene resources)
+    // Non-copyable (manages unique renderer and scene resources)
     SceneManager(const SceneManager&) = delete;
     SceneManager& operator=(const SceneManager&) = delete;
 
@@ -33,14 +37,14 @@ public:
     void setupRenderer(const threepp::WindowSize& size);
     void setupMinimapCamera(float aspectRatio);
 
-    // Camera control
+    // Camera updates
     void updateCameraFollowTarget(float targetX, float targetY, float targetZ, float targetRotation,
                                   float vehicleScale, bool nitrousActive = false, float vehicleVelocity = 0.0f,
                                   float driftAngle = 0.0f);
     void updateMinimapCamera(float targetX, float targetZ, float vehicleScale);
     void updateCameraFOV(bool nitrousActive, float vehicleVelocity = 0.0f);
 
-    // Camera mode switching
+    // Camera mode control
     void setCameraMode(CameraMode mode) noexcept;
     [[nodiscard]] CameraMode getCameraMode() const noexcept;
     void toggleCameraMode() noexcept;
@@ -60,21 +64,20 @@ private:
     std::shared_ptr<threepp::OrthographicCamera> minimapCamera_;
     std::shared_ptr<threepp::Mesh> groundMesh_;
 
-    // Camera follow parameters
+    // Camera follow parameters (scaled by vehicle size)
     float cameraDistance_;
     float cameraHeight_;
     float cameraLerpSpeed_;
 
-    // Side view camera parameters
-    float cameraSideDistance_; // Distance from vehicle for side view
-    float cameraSideHeight_;   // Height for side view
+    float cameraSideDistance_;
+    float cameraSideHeight_;
 
-    // Inside/cockpit camera parameters
-    float cameraInsideForwardOffset_; // Forward offset for interior camera
-    float cameraInsideHeight_;        // Height for interior camera
-    float cameraInsideSideOffset_;    // Lateral offset (right/left) for interior camera (behind wheel)
+    // Interior camera parameters
+    float cameraInsideForwardOffset_;
+    float cameraInsideHeight_;
+    float cameraInsideSideOffset_;
 
-    // FOV parameters
+    // Field of view parameters
     float baseFOV_;
     float currentFOV_;
     float targetFOV_;
@@ -91,11 +94,9 @@ private:
     float currentLookAtY_;
     float currentLookAtZ_;
 
-    // Drift camera state
-
-    // Vehicle scale tracking for camera adjustments
+    // Drift and scale tracking
     float currentVehicleScale_;
-    float driftCameraOffset_;  // Current side offset for drift camera
+    float driftCameraOffset_;
 
     // Camera yaw offset for arrow key control
     float cameraYawOffset_;

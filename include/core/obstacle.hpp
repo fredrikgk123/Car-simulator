@@ -8,13 +8,12 @@ enum class ObstacleType {
 };
 
 enum class WallOrientation {
-    HORIZONTAL,  // North/South walls (extends along X axis)
-    VERTICAL     // East/West walls (extends along Z axis)
+    HORIZONTAL,  // X-axis (North/South)
+    VERTICAL     // Z-axis (East/West)
 };
 
 /**
- * Obstacle class - represents static obstacles in the environment
- * Walls form the perimeter, trees are scattered throughout
+ * Static obstacles: walls around the perimeter and trees scattered inside.
  */
 class Obstacle : public GameObject {
 public:
@@ -23,8 +22,7 @@ public:
     [[nodiscard]] ObstacleType getType() const noexcept;
     [[nodiscard]] WallOrientation getOrientation() const noexcept;
 
-    // Override from GameObject - obstacles are static, no update needed
-    void update(float deltaTime) override;
+    void update(float deltaTime) override; // no-op for static objects
 
 private:
     ObstacleType type_;

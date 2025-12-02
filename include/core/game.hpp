@@ -15,27 +15,21 @@
 #include "ui/imgui_layer.hpp"
 
 /**
- * Main game class - encapsulates all game logic and state
- * Manages initialization, game loop, and cleanup
+ * Main game coordinator.
+ * Ties together all the subsystems and runs the game loop.
  */
 class Game {
 public:
     explicit Game(threepp::Canvas& canvas);
     ~Game() = default;
 
-    // Initialize all game systems
     void initialize();
-
-    // Main game loop (called every frame)
     void update(float deltaTime);
-
-    // Render the game
     void render();
 
     [[nodiscard]] threepp::Clock& getClock() noexcept { return clock_; }
 
 private:
-    // Initialization helpers
     void initializeScene();
     void initializeVehicle();
     void initializeObstacles();
@@ -44,51 +38,38 @@ private:
     void initializeAudio();
     void initializeUI();
 
-    // Update helpers
     void updateGameState(float deltaTime);
     void updateCamera();
     void updateAudio();
 
-    // Render helpers
     void renderMainView();
     void renderMinimap();
     void renderUI();
 
-    // Canvas reference
     threepp::Canvas& canvas_;
 
-    // Core systems
     std::unique_ptr<SceneManager> sceneManager_;
     std::unique_ptr<Vehicle> vehicle_;
     std::unique_ptr<VehicleRenderer> vehicleRenderer_;
 
-    // Managers
     std::unique_ptr<ObstacleManager> obstacleManager_;
     std::unique_ptr<PowerupManager> powerupManager_;
 
-    // Renderers
     std::vector<std::unique_ptr<ObstacleRenderer>> obstacleRenderers_;
     std::vector<std::unique_ptr<PowerupRenderer>> powerupRenderers_;
 
-    // Input and UI
     std::unique_ptr<InputHandler> inputHandler_;
     std::unique_ptr<AudioManager> audioManager_;
     std::unique_ptr<ImGuiLayer> imguiLayer_;
 
-    // State
     bool audioEnabled_;
-    bool shouldExit_;  // Flag to signal graceful exit from game loop
+    bool shouldExit_;
     threepp::Clock clock_;
 
-    // Window size tracking for resize detection
     int lastWindowWidth_;
     int lastWindowHeight_;
 
 public:
-    // Check if game should exit
     [[nodiscard]] bool shouldExit() const noexcept { return shouldExit_; }
-
-    // Signal graceful exit
     void requestExit() noexcept { shouldExit_ = true; }
 };
-

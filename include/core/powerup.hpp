@@ -6,6 +6,10 @@ enum class PowerupType {
     NITROUS
 };
 
+/**
+ * Collectible powerups (nitrous boost).
+ * Spins slowly for visual effect.
+ */
 class Powerup : public GameObject {
 public:
     Powerup(float x, float y, float z, PowerupType type);

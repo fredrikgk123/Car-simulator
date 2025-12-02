@@ -6,8 +6,8 @@
 #include <cmath>
 
 /**
- * Utility class for generating random positions within a play area
- * Used by managers to spawn objects with proper spacing
+ * Generates random positions with spacing constraints.
+ * Used for placing trees and powerups.
  */
 class RandomPositionGenerator {
 public:
@@ -18,12 +18,11 @@ public:
           distribution_(minPos_, maxPos_) {
     }
 
-    // Get a single random 2D position (x, z)
     std::array<float, 2> getRandomPosition() {
         return {distribution_(randomEngine_), distribution_(randomEngine_)};
     }
 
-    // Get a random position that maintains minimum distance from existing positions
+    // Keep minimum distance from existing positions
     std::array<float, 2> getRandomPositionWithMinDistance(
         const std::vector<std::array<float, 2>>& existingPositions,
         float minDistance,
@@ -39,11 +38,10 @@ public:
             }
         }
 
-        // If we couldn't find a valid position, return the last attempt
         return getRandomPosition();
     }
 
-    // Get a random position that maintains distance from center and existing positions
+    // Distance from both center and other positions
     std::array<float, 2> getRandomPositionWithConstraints(
         const std::vector<std::array<float, 2>>& existingPositions,
         float minDistanceFromCenter,
@@ -55,19 +53,16 @@ public:
             attempts++;
             auto pos = getRandomPosition();
 
-            // Check distance from center
             float distFromCenter = std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
             if (distFromCenter < minDistanceFromCenter) {
                 continue;
             }
 
-            // Check distance from existing positions
             if (isPositionValid(pos, existingPositions, minDistanceFromOthers)) {
                 return pos;
             }
         }
 
-        // If we couldn't find a valid position, return the last attempt
         return getRandomPosition();
     }
 
@@ -95,4 +90,3 @@ private:
     float maxPos_;
     std::uniform_real_distribution<float> distribution_;
 };
-

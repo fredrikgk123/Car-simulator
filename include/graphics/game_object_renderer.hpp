@@ -4,7 +4,10 @@
 #include <memory>
 #include "core/game_object.hpp"
 
-// Generic renderer that can render any GameObject
+/**
+ * Base renderer for game objects.
+ * Synchronizes 3D visual representation with logical game object state.
+ */
 class GameObjectRenderer {
 public:
     GameObjectRenderer(threepp::Scene& scene, const GameObject& gameObject);
@@ -13,14 +16,12 @@ public:
     // Update visual representation to match game object state
     virtual void update();
 
-    // Change visibility
     void setVisible(bool visible);
 
 protected:
-    // Override this to create custom models for different object types
+    // Override to create custom 3D models
     virtual void createModel();
 
-    // Protected members that derived classes can access
     threepp::Scene& scene_;
     const GameObject& gameObject_;
     std::shared_ptr<threepp::Group> objectGroup_;

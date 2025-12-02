@@ -31,7 +31,6 @@ void InputHandler::onReset() {
 }
 
 void InputHandler::onKeyPressed(KeyEvent evt) {
-    // WASD for steering, arrows for camera snaps
     switch (evt.key) {
         case Key::W:
             wPressed_ = true;
@@ -126,15 +125,12 @@ void InputHandler::onKeyReleased(KeyEvent evt) {
 }
 
 void InputHandler::update(float deltaTime) {
-    // Handle acceleration
     if (wPressed_) {
-        // Controllable entity now owns the acceleration multiplier; use the simple API
         controllable_.accelerateForward();
     } else if (sPressed_) {
         controllable_.accelerateBackward();
     }
 
-    // Handle turning - deltaTime provides frame-independent turning speed
     if (aPressed_) {
         controllable_.turn(deltaTime);
     }

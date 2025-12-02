@@ -11,17 +11,14 @@ Powerup::Powerup(float x, float y, float z, PowerupType type)
     : GameObject(x, y, z),
       type_(type),
       rotationSpeed_(POWERUP_ROTATION_SPEED) {
-    // Set powerup size
     size_[0] = ObjectSizes::POWERUP_SIZE;
     size_[1] = ObjectSizes::POWERUP_SIZE;
     size_[2] = ObjectSizes::POWERUP_SIZE;
 }
 
 void Powerup::update(float deltaTime) {
-    // Rotate powerup for visual effect (always rotate, even if inactive)
+    // Continuous rotation for visual appeal
     rotation_ += rotationSpeed_ * deltaTime;
-
-    // Keep rotation in [0, 2π]
     rotation_ = std::fmod(rotation_, VehicleTuning::TWO_PI);
 }
 

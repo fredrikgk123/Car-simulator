@@ -6,7 +6,10 @@
 #include <vector>
 #include <memory>
 
-// Manages collection of powerups in the game
+/**
+ * Manages powerup spawning, updates, and collection.
+ * Handles collision detection between vehicle and powerups.
+ */
 class PowerupManager : public GameObjectManager {
 public:
     PowerupManager(int count, float playAreaSize);

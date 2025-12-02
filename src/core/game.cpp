@@ -131,11 +131,10 @@ void Game::initializeUI() {
 }
 
 void Game::update(float deltaTime) {
-    // Clamp deltaTime to prevent physics explosions from extreme values
-    // Max 100ms per frame (equivalent to 10 FPS minimum)
+    // Cap deltaTime to avoid physics bugs on lag spikes (100ms max = 10 FPS min)
     deltaTime = std::clamp(deltaTime, 0.0f, 0.1f);
 
-    // Check for window resize
+    // Handle window resizing
     auto size = canvas_.size();
     if (size.width() != lastWindowWidth_ || size.height() != lastWindowHeight_) {
         lastWindowWidth_ = size.width();
@@ -151,46 +150,38 @@ void Game::update(float deltaTime) {
 }
 
 void Game::updateGameState(float deltaTime) {
-    // Update input
     if (inputHandler_) {
         inputHandler_->update(deltaTime);
     }
 
-    // Update vehicle physics
     if (vehicle_) {
         vehicle_->update(deltaTime);
     }
 
-    // Update vehicle renderer
     if (vehicleRenderer_ && vehicle_) {
         vehicleRenderer_->update(inputHandler_ ? inputHandler_->isLeftPressed() : false,
                                 inputHandler_ ? inputHandler_->isRightPressed() : false);
     }
 
-    // Handle collisions
     if (obstacleManager_ && vehicle_) {
         obstacleManager_->handleCollisions(*vehicle_);
     }
 
-    // Update powerups (rotation animation, etc.)
     if (powerupManager_) {
         powerupManager_->update(deltaTime);
     }
 
-    // Check for powerup collisions
     if (powerupManager_ && vehicle_) {
         powerupManager_->handleCollisions(*vehicle_);
     }
 
-    // Update powerup renderers (powerups can move/rotate)
     for (auto& renderer : powerupRenderers_) {
         if (renderer) {
             renderer->update();
         }
     }
 
-    // Note: Obstacle renderers are NOT updated here - they're static and only
-    // need update() called once during initialization
+    // Obstacles don't need updating - they're static
 }
 
 void Game::updateCamera() {

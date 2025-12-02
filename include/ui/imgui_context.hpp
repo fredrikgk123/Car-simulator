@@ -8,8 +8,7 @@
 #include <functional>
 
 /**
- * Internal implementation class that inherits from threepp's ImguiContext
- * and implements the required pure virtual function.
+ * Internal implementation class inheriting from threepp's ImguiContext.
  */
 class ImguiContextImpl : public ImguiContext {
 public:
@@ -19,7 +18,7 @@ public:
     // Virtual destructor for proper cleanup when deleted via base pointer
     ~ImguiContextImpl() override = default;
 
-    // Delete copy and move to prevent issues with the base class
+    // Non-copyable and non-movable (base class restrictions)
     ImguiContextImpl(const ImguiContextImpl&) = delete;
     ImguiContextImpl& operator=(const ImguiContextImpl&) = delete;
     ImguiContextImpl(ImguiContextImpl&&) = delete;
@@ -39,7 +38,6 @@ private:
 /**
  * RAII wrapper for ImGui context using threepp's built-in support.
  * Ensures proper initialization and cleanup with exception safety.
- * Uses smart pointers exclusively - no raw pointer management.
  */
 class ImGuiContextWrapper {
 public:
@@ -49,7 +47,7 @@ public:
     // Destructor handles cleanup automatically
     ~ImGuiContextWrapper();
 
-    // Delete copy and move operations - resource should not be duplicated
+    // Non-copyable and non-movable (resource should not be duplicated)
     ImGuiContextWrapper(const ImGuiContextWrapper&) = delete;
     ImGuiContextWrapper& operator=(const ImGuiContextWrapper&) = delete;
     ImGuiContextWrapper(ImGuiContextWrapper&&) = delete;

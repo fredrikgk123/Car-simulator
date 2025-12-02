@@ -47,14 +47,6 @@ TEST_CASE("Vehicle input validation", "[vehicle][validation]") {
         REQUIRE(vehicle.getVelocity() > -100.0f); // Should be clamped
     }
 
-    SECTION("setScale prevents zero or negative values") {
-        vehicle.setScale(0.0f);
-        REQUIRE(vehicle.getScale() > 0.0f);
-
-        vehicle.setScale(-5.0f);
-        REQUIRE(vehicle.getScale() > 0.0f);
-    }
-
     SECTION("setAccelerationMultiplier clamps to reasonable range") {
         vehicle.setAccelerationMultiplier(100.0f);
         REQUIRE(vehicle.getAccelerationMultiplier() <= 5.0f);

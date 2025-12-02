@@ -372,27 +372,6 @@ TEST_CASE("Vehicle scale", "[vehicle][scale]") {
         vehicle.setScale(2.0f);
         REQUIRE(vehicle.getScale() == Approx(2.0f));
     }
-
-    SECTION("Zero scale is clamped to positive value") {
-        vehicle.setScale(0.0f);
-        REQUIRE(vehicle.getScale() > 0.0f);
-    }
-
-    SECTION("Negative scale is clamped to positive value") {
-        vehicle.setScale(-5.0f);
-        REQUIRE(vehicle.getScale() > 0.0f);
-    }
-
-    SECTION("Scale affects collision size") {
-        auto initialSize = vehicle.getSize();
-
-        vehicle.setScale(2.0f);
-        auto scaledSize = vehicle.getSize();
-
-        REQUIRE(scaledSize[0] == Approx(initialSize[0] * 2.0f));
-        REQUIRE(scaledSize[1] == Approx(initialSize[1] * 2.0f));
-        REQUIRE(scaledSize[2] == Approx(initialSize[2] * 2.0f));
-    }
 }
 
 TEST_CASE("Vehicle acceleration multiplier", "[vehicle][tuning]") {

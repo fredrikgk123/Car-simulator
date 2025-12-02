@@ -1,5 +1,5 @@
 // AI Assistance: GitHub Copilot was used for miniaudio API integration
-// and custom deleters for C resource management.
+// and custom deleters for RAII resource management.
 
 #pragma once
 
@@ -7,25 +7,28 @@
 #include <string_view>
 #include <memory>
 
-// Forward declare miniaudio types
+// Forward declarations to avoid including miniaudio header
 struct ma_engine;
 struct ma_sound;
 
 class IVehicleState;
 
+/**
+ * Handles audio playback for engine and drift sounds.
+ * Uses miniaudio with RAII wrappers for automatic cleanup.
+ */
 class AudioManager {
 public:
     AudioManager();
     ~AudioManager();
 
-    // Delete copy constructor and assignment operator (audio resources shouldn't be copied)
+    // Can't copy (audio resources are unique)
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;
 
-    // Initialize audio engine and load sound files
     [[nodiscard]] bool initialize(std::string_view engineSoundPath);
 
-    // Update audio based on vehicle state
+    // Updates audio based on RPM, speed, drift state, etc.
     void update(const IVehicleState& vehicleState);
 
 private:

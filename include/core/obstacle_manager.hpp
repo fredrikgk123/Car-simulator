@@ -8,26 +8,18 @@
 #include <memory>
 
 /**
- * ObstacleManager - manages all obstacles in the scene
- * Creates perimeter walls and scattered trees
+ * Manages all obstacles in the scene.
+ * Generates perimeter walls and randomly positioned trees with proper spacing.
  */
 class ObstacleManager : public GameObjectManager {
 public:
     ObstacleManager(float playAreaSize, int treeCount);
 
-    // Update all obstacles (static, so no-op)
     virtual void update(float deltaTime) override;
-
-    // Collision detection with vehicle
     virtual void handleCollisions(Vehicle& vehicle) override;
-
-    // Access to obstacles for rendering
-    [[nodiscard]] const std::vector<std::unique_ptr<Obstacle>>& getObstacles() const noexcept;
-
-    // Reset is not needed for static obstacles, but included for consistency
     virtual void reset() noexcept override;
 
-    // Get count of obstacles
+    [[nodiscard]] const std::vector<std::unique_ptr<Obstacle>>& getObstacles() const noexcept;
     [[nodiscard]] virtual size_t getCount() const noexcept override;
 
 private:

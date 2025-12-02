@@ -18,24 +18,21 @@ Vehicle::Vehicle(float x, float y, float z)
       scale_(VehicleTuning::DEFAULT_SCALE),
       accelMultiplier_(1.0f),
       resetCameraCallback_() {
-    // Set vehicle-specific size
     size_[0] = VehicleTuning::VEHICLE_WIDTH;
     size_[1] = VehicleTuning::VEHICLE_HEIGHT;
     size_[2] = VehicleTuning::VEHICLE_LENGTH;
 
-    // Set initial rotation to 180 degrees (π radians) so vehicle faces down in minimap
+    // Start facing down in minimap (180 degrees)
     rotation_ = VehicleTuning::INITIAL_ROTATION_RADIANS;
     initialRotation_ = VehicleTuning::INITIAL_ROTATION_RADIANS;
 }
 
 void Vehicle::accelerateForward() noexcept {
-    // Use the vehicle-owned acceleration multiplier
     accelerateForward(accelMultiplier_);
 }
 
 void Vehicle::accelerateForward(float multiplier) noexcept {
     float baseAcceleration = nitrousActive_ ? VehicleTuning::NITROUS_ACCELERATION : VehicleTuning::FORWARD_ACCELERATION;
-    // Apply gear acceleration multiplier and external multiplier for tunable responsiveness
     acceleration_ = baseAcceleration * getGearAccelerationMultiplier() * multiplier;
 }
 
@@ -44,25 +41,21 @@ void Vehicle::accelerateBackward() noexcept {
 }
 
 void Vehicle::turn(float amount) noexcept {
-    steeringInput_ = amount; // Store the steering input
+    steeringInput_ = amount;
 
     float turnRate = calculateTurnRate();
 
-    // Invert turning direction when reversing for intuitive controls
+    // Reverse the steering when going backwards for a realistic feel
     float turnDirection = (velocity_ >= 0.0f) ? 1.0f : -1.0f;
     rotation_ += amount * VehicleTuning::TURN_SPEED * turnRate * turnDirection;
 
-    // When drifting, allow the car to build up a drift angle
-    // Drift angle = difference between car orientation and movement direction
     if (isDrifting_) {
-        // Accumulate drift angle more aggressively (multiplied by DRIFT_ANGLE_MULTIPLIER)
+        // Build up drift angle for bigger slides
         driftAngle_ += amount * VehicleTuning::TURN_SPEED * turnRate * VehicleTuning::DRIFT_ANGLE_MULTIPLIER * turnDirection;
-
-        // Increased max drift angle to ~60 degrees for more dramatic slides
         driftAngle_ = (std::clamp)(driftAngle_, -VehicleTuning::DRIFT_ANGLE_MAX_RADIANS, VehicleTuning::DRIFT_ANGLE_MAX_RADIANS);
     }
 
-    // Normalize rotation to [0, 2π]
+    // Keep rotation in [0, 2π]
     rotation_ = std::fmod(rotation_, VehicleTuning::TWO_PI);
     if (rotation_ < 0.0f) {
         rotation_ += VehicleTuning::TWO_PI;
@@ -72,33 +65,30 @@ void Vehicle::turn(float amount) noexcept {
 float Vehicle::calculateTurnRate() const noexcept {
     const float absoluteVelocity = std::abs(velocity_);
 
-    // Don't turn if completely stopped
     if (absoluteVelocity < VehicleTuning::MIN_SPEED_THRESHOLD) {
         return 0.0f;
     }
 
-    // Extremely low speeds (0.1-0.3 m/s / ~0.4-1.1 km/h): very minimal turning
+    // Piecewise linear curve - different turn rates at different speeds
     if (absoluteVelocity < VehicleTuning::TURN_RATE_MIN_SPEED) {
         return VehicleTuning::TURN_RATE_EXTREMELY_LOW_BASE +
                ((absoluteVelocity - VehicleTuning::MIN_SPEED_THRESHOLD) / VehicleTuning::TURN_RATE_EXTREMELY_LOW_DIVISOR) *
                VehicleTuning::TURN_RATE_EXTREMELY_LOW_RANGE;
     }
 
-    // Very low speeds (0.3-3 m/s / ~1.1-11 km/h): minimal but usable turning
     if (absoluteVelocity < VehicleTuning::TURN_RATE_LOW_SPEED) {
         return VehicleTuning::TURN_RATE_VERY_LOW_BASE +
                ((absoluteVelocity - VehicleTuning::TURN_RATE_MIN_SPEED) / VehicleTuning::TURN_RATE_VERY_LOW_DIVISOR) *
                VehicleTuning::TURN_RATE_VERY_LOW_RANGE;
     }
 
-    // Low to medium speeds (3-15 m/s / ~11-54 km/h): good turning capability
     if (absoluteVelocity < VehicleTuning::TURN_RATE_MEDIUM_SPEED) {
         return VehicleTuning::TURN_RATE_LOW_MEDIUM_BASE +
                ((absoluteVelocity - VehicleTuning::TURN_RATE_LOW_SPEED) / VehicleTuning::TURN_RATE_LOW_MEDIUM_DIVISOR) *
                VehicleTuning::TURN_RATE_LOW_MEDIUM_RANGE;
     }
 
-    // High speeds (15+ m/s / 54+ km/h): reduced turn rate for realism
+    // Less responsive at high speed
     const float speedRatio = (absoluteVelocity - VehicleTuning::TURN_RATE_MEDIUM_SPEED) / (VehicleTuning::MAX_SPEED - VehicleTuning::TURN_RATE_MEDIUM_SPEED);
     const float turnRate = VehicleTuning::TURN_RATE_HIGH_SPEED_BASE - (speedRatio * VehicleTuning::TURN_RATE_HIGH_SPEED_REDUCTION);
 
@@ -109,7 +99,7 @@ void Vehicle::activateNitrous() noexcept {
     if (hasNitrous_ && !nitrousActive_) {
         nitrousActive_ = true;
         nitrousTimeRemaining_ = VehicleTuning::NITROUS_DURATION;
-        hasNitrous_ = false; // Consumed when activated
+        hasNitrous_ = false;
     }
 }
 
@@ -119,7 +109,6 @@ void Vehicle::startDrift() noexcept {
 
 void Vehicle::stopDrift() noexcept {
     isDrifting_ = false;
-    // Keep more of the drift angle when exiting for a smoother transition
     driftAngle_ *= VehicleTuning::DRIFT_EXIT_RETENTION;
 }
 
@@ -164,18 +153,14 @@ void Vehicle::updateNitrous(float deltaTime) noexcept {
 }
 
 void Vehicle::updateVelocity(float deltaTime) noexcept {
-    // Update velocity based on acceleration
     velocity_ += acceleration_ * deltaTime;
 
-    // Apply friction (less friction while drifting)
-    // Logarithmic friction curve: more friction at low speeds, less at high speeds
+    // Logarithmic friction - stronger at low speeds, weaker at high speeds
     float baseFriction = isDrifting_ ? VehicleTuning::DRIFT_FRICTION_COEFFICIENT : VehicleTuning::FRICTION_COEFFICIENT;
 
-    // Calculate friction multiplier using logarithmic curve
     float speedRatio = std::abs(velocity_) / VehicleTuning::MAX_SPEED;
-    speedRatio = (std::clamp)(speedRatio, VehicleTuning::FRICTION_MIN_CLAMP, 1.0f); // Prevent log(0)
+    speedRatio = (std::clamp)(speedRatio, VehicleTuning::FRICTION_MIN_CLAMP, 1.0f);
 
-    // Logarithmic curve: friction increases as speed decreases
     float logValue = std::log(speedRatio);
     float frictionRange = VehicleTuning::FRICTION_COEFFICIENT - VehicleTuning::FRICTION_BASE_VALUE;
     float frictionMultiplier = VehicleTuning::FRICTION_BASE_VALUE + ((logValue + VehicleTuning::FRICTION_LOG_OFFSET) / VehicleTuning::FRICTION_LOG_OFFSET) * frictionRange;
@@ -184,7 +169,6 @@ void Vehicle::updateVelocity(float deltaTime) noexcept {
     float frictionCoefficient = isDrifting_ ? baseFriction : frictionMultiplier;
     velocity_ *= frictionCoefficient;
 
-    // Clamp velocity to max speeds (higher during nitrous)
     float currentMaxSpeed = nitrousActive_ ? VehicleTuning::NITROUS_MAX_SPEED : VehicleTuning::MAX_SPEED;
     velocity_ = std::clamp(velocity_, -VehicleTuning::MAX_REVERSE_SPEED, currentMaxSpeed);
 }
@@ -192,37 +176,31 @@ void Vehicle::updateVelocity(float deltaTime) noexcept {
 void Vehicle::updateRPM() noexcept {
     float absoluteVelocity = std::abs(velocity_);
     if (absoluteVelocity < VehicleTuning::MIN_SPEED_THRESHOLD) {
-        // Idle RPM when stopped
         rpm_ = VehicleTuning::IDLE_RPM;
     } else if (currentGear_ > 0 && currentGear_ <= VehicleTuning::NUM_GEARS) {
-        // Calculate RPM based on speed within current gear's range
-        // RPM = IDLE + (speed - gearMinSpeed) / (gearMaxSpeed - gearMinSpeed) * (MAX_RPM - IDLE)
-        // This maps the current speed within the gear range to an RPM value
+        // RPM based on where we are in the current gear's speed range
         float gearMinSpeed = VehicleTuning::GEAR_SPEEDS[currentGear_ - 1];
         float gearMaxSpeed = VehicleTuning::GEAR_SPEEDS[currentGear_];
         float speedRatio = (absoluteVelocity - gearMinSpeed) / (gearMaxSpeed - gearMinSpeed);
         speedRatio = std::clamp(speedRatio, 0.0f, 1.0f);
 
-        // Map speed ratio to RPM range (shift point to max RPM)
         rpm_ = VehicleTuning::GEAR_SHIFT_DOWN_RPM + speedRatio * (VehicleTuning::MAX_RPM - VehicleTuning::GEAR_SHIFT_DOWN_RPM);
     }
 }
 
 void Vehicle::updateDrift(float deltaTime) noexcept {
     if (isDrifting_) {
-        // Gradually reduce drift angle over time (self-correcting)
         driftAngle_ *= VehicleTuning::DRIFT_DECAY_RATE;
     }
 }
 
 void Vehicle::updatePosition(float deltaTime) noexcept {
-    // When drifting, car moves in a direction between facing and drift angle
+    // Car slides at an angle while drifting
     float movementAngle = rotation_;
     if (isDrifting_) {
         movementAngle = rotation_ - driftAngle_;
     }
 
-    // Update position based on velocity and movement angle
     const float deltaX = std::sin(movementAngle) * velocity_ * deltaTime;
     const float deltaZ = std::cos(movementAngle) * velocity_ * deltaTime;
     position_[0] += deltaX;
@@ -230,10 +208,9 @@ void Vehicle::updatePosition(float deltaTime) noexcept {
 }
 
 void Vehicle::decayAcceleration() noexcept {
-    // Reset acceleration (must be reapplied each frame)
     acceleration_ = 0.0f;
 
-    // Decay steering input towards zero (natural return to center)
+    // Steering wheel returns to center
     steeringInput_ *= VehicleTuning::STEERING_DECAY_RATE;
     if (std::abs(steeringInput_) < VehicleTuning::STEERING_ZERO_THRESHOLD) {
         steeringInput_ = 0.0f;
@@ -253,7 +230,6 @@ void Vehicle::reset() noexcept {
     currentGear_ = 1;
     rpm_ = VehicleTuning::IDLE_RPM;
 
-    // Reset camera to follow mode
     if (resetCameraCallback_) {
         resetCameraCallback_();
     }
@@ -268,8 +244,7 @@ float Vehicle::getVelocity() const noexcept {
 }
 
 void Vehicle::setVelocity(float velocity) noexcept {
-    // Clamp velocity to reasonable bounds to prevent physics bugs
-    const float MAX_VELOCITY = VehicleTuning::MAX_SPEED * VehicleTuning::MAX_VELOCITY_MULTIPLIER;  // Allow slight overspeed
+    const float MAX_VELOCITY = VehicleTuning::MAX_SPEED * VehicleTuning::MAX_VELOCITY_MULTIPLIER;
     velocity_ = std::clamp(velocity, -MAX_VELOCITY, MAX_VELOCITY);
 }
 
@@ -292,52 +267,39 @@ float Vehicle::getSteeringInput() const noexcept {
 void Vehicle::updateGearShifting() noexcept {
     float absoluteVelocity = std::abs(velocity_);
 
-    // Don't shift during reverse
     if (velocity_ < 0.0f) {
-        currentGear_ = 0; // Reverse gear
+        currentGear_ = 0;
         return;
     }
 
-    // Start in gear 1 when moving forward from stop
-    if (absoluteVelocity < 0.1f) {
+    // Simple automatic transmission based on speed
+    if (absoluteVelocity < VehicleTuning::MIN_SPEED_THRESHOLD) {
         currentGear_ = 1;
         return;
     }
 
-    // Automatic gear shifting based on speed
-    // Each gear has a speed range defined in GEAR_SPEEDS array
-    // Shift up when reaching the upper speed threshold for current gear
-    if (currentGear_ < VehicleTuning::NUM_GEARS && absoluteVelocity >= VehicleTuning::GEAR_SPEEDS[currentGear_]) {
-        currentGear_++;
+    for (int gear = 1; gear <= VehicleTuning::NUM_GEARS; ++gear) {
+        if (absoluteVelocity < VehicleTuning::GEAR_SPEEDS[gear]) {
+            currentGear_ = gear;
+            return;
+        }
     }
-    // Shift down when falling below the lower speed threshold
-    else if (currentGear_ > 1 && absoluteVelocity < VehicleTuning::GEAR_SPEEDS[currentGear_ - 1]) {
-        currentGear_--;
-    }
+
+    currentGear_ = VehicleTuning::NUM_GEARS;
 }
 
 float Vehicle::getGearAccelerationMultiplier() const noexcept {
-    // Return multiplier based on current gear (lower gears = more torque)
-    if (currentGear_ >= 1 && currentGear_ <= VehicleTuning::NUM_GEARS) {
+    if (currentGear_ > 0 && currentGear_ <= VehicleTuning::NUM_GEARS) {
         return VehicleTuning::GEAR_ACCELERATION_MULTIPLIERS[currentGear_ - 1];
     }
-    return 1.0f; // Default multiplier for reverse or invalid gear
+    return 1.0f;
 }
 
 void Vehicle::setScale(float scale) noexcept {
-    // Clamp to reasonable values
-    if (scale <= 0.0f) scale = VehicleTuning::DEFAULT_SCALE;
     scale_ = scale;
-
-    // Update collision/size used by renderers
-    size_[0] = VehicleTuning::VEHICLE_WIDTH * scale_;
-    size_[1] = VehicleTuning::VEHICLE_HEIGHT * scale_;
-    size_[2] = VehicleTuning::VEHICLE_LENGTH * scale_;
-
-    // Update cached collision radius after size change
-    updateCollisionRadius();
 }
 
-[[nodiscard]] float Vehicle::getScale() const noexcept {
+float Vehicle::getScale() const noexcept {
     return scale_;
 }
+

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(bilsim)
+project(carsimulator)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -86,13 +86,13 @@ add_custom_target(copy_assets ALL
 add_custom_command(TARGET copy_assets POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets
-    $<TARGET_FILE_DIR:bilsim>/assets
-    COMMENT "Copying assets to bilsim output directory"
+    $<TARGET_FILE_DIR:carsimulator>/assets
+    COMMENT "Copying assets to carsimulator output directory"
     VERBATIM
 )
 
-add_dependencies(bilsim copy_assets)
+add_dependencies(carsimulator copy_assets)
 
-message(STATUS "bilsim configured successfully with audio support (miniaudio)")
+message(STATUS "carsimulator configured successfully with audio support (miniaudio)")
 message(STATUS "Catch2 testing framework configured")
 message(STATUS "Threading library: ${CMAKE_THREAD_LIBS_INIT}")

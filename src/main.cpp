@@ -9,12 +9,11 @@ using namespace threepp;
 
 int main() {
     try {
-        std::cout << "Starting Bilsimulator..." << std::endl;
+        std::cout << "Starting Car Simulator..." << std::endl;
 
-        // Create canvas
-        Canvas canvas("Bilsimulator");
+        Canvas canvas("Car Simulator");
 
-        // Initialize ImGui with RAII - automatic cleanup on scope exit
+        // Initialize ImGui with RAII for automatic cleanup
         std::cout << "Initializing ImGui..." << std::endl;
         auto imguiContext = std::make_unique<ImGuiContextWrapper>(canvas.windowPtr());
 
@@ -23,33 +22,26 @@ int main() {
             return 1;
         }
 
-        // Create and initialize game
         std::cout << "Creating game instance..." << std::endl;
         auto game = std::make_unique<Game>(canvas);
         game->initialize();
 
         std::cout << "Entering main game loop..." << std::endl;
 
-        // Main game loop with error handling
         canvas.animate([&game, &imguiContext] {
             try {
-                // Check if we should exit
                 if (game->shouldExit()) {
                     return;
                 }
 
                 float deltaTime = game->getClock().getDelta();
 
-                // Update game state
                 game->update(deltaTime);
 
-                // Start ImGui frame
                 imguiContext->newFrame();
 
-                // Render everything
                 game->render();
 
-                // Finish ImGui rendering
                 imguiContext->render();
 
             } catch (const std::exception& e) {
@@ -61,11 +53,9 @@ int main() {
             }
         });
 
-        // Cleanup happens automatically via RAII
-        // smart pointers (game, imguiContext) destruct in reverse order
+        // RAII ensures proper cleanup in reverse order
         std::cout << "Shutting down..." << std::endl;
-
-        std::cout << "Bilsimulator exited successfully." << std::endl;
+        std::cout << "Car Simulator exited successfully." << std::endl;
         return 0;
 
     } catch (const std::exception& e) {

@@ -2,7 +2,10 @@
 
 #include <array>
 
-// Base class for all game objects (vehicles, powerups, obstacles, etc.)
+/**
+ * Base for all game entities.
+ * Handles position, rotation, collision, and active/inactive state.
+ */
 class GameObject {
 public:
     GameObject(float x, float y, float z);
@@ -25,26 +28,24 @@ public:
     void setRotation(float rotation) noexcept;
     void setActive(bool active) noexcept;
 
-    // Collision detection - circle-based for simplicity and consistency
+    // Circle collision with detailed info
     [[nodiscard]] bool checkCircleCollision(const GameObject& other, float& overlapDistance, float& normalX, float& normalZ) const noexcept;
 
-    // Simple collision check without detailed information
+    // Quick collision check
     [[nodiscard]] bool intersects(const GameObject& other) const noexcept;
 
 protected:
-    // Position and orientation
+    // Transform
     std::array<float, 3> position_;
     std::array<float, 3> initialPosition_;
     float rotation_;
     float initialRotation_;
 
-    // Size for collision detection (width, height, length)
+    // Collision
     std::array<float, 3> size_;
-
-    // Cached collision radius (computed from size)
     float collisionRadius_;
 
-    // Active state
+    // State
     bool active_;
 
     // Recalculate collision radius when size changes

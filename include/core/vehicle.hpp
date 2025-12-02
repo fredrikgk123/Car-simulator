@@ -7,67 +7,66 @@
 #include "core/vehicle_tuning.hpp"
 #include <algorithm>
 
+/**
+ * Player's vehicle with realistic physics.
+ * Features gear shifting, drift mechanics, nitrous boost, and RPM simulation.
+ */
 class Vehicle : public GameObject, public IVehicleState, public IControllable {
 public:
-    // Constructor - takes x, y, z starting position
     explicit Vehicle(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 
-    // Control methods (implement IControllable)
+    // Control interface
     void accelerateForward() noexcept override;
-    void accelerateForward(float multiplier) noexcept; // New overload: apply a multiplier to forward acceleration (1.0 = default)
+    void accelerateForward(float multiplier) noexcept; // with custom multiplier
     void accelerateBackward() noexcept override;
     void turn(float amount) noexcept override;
 
-    // Drift methods (implement IControllable)
+    // Drift controls
     void startDrift() noexcept override;
     void stopDrift() noexcept override;
     [[nodiscard]] bool isDrifting() const noexcept override;
 
-    // Nitrous methods (implement IControllable)
+    // Nitrous boost
     void activateNitrous() noexcept override;
     void pickupNitrous() noexcept;
     [[nodiscard]] bool hasNitrous() const noexcept override;
     [[nodiscard]] bool isNitrousActive() const noexcept override;
     [[nodiscard]] float getNitrousTimeRemaining() const noexcept override;
 
-    // Override from GameObject
     void update(float deltaTime) override;
     void reset() noexcept override;
 
-    // Getters (implement IVehicleState)
+    // State getters
     [[nodiscard]] float getVelocity() const noexcept override;
     [[nodiscard]] static constexpr float getMaxSpeed() noexcept { return VehicleTuning::MAX_SPEED; }
-    [[nodiscard]] float getDriftAngle() const noexcept override;  // Get current drift angle for camera
-    [[nodiscard]] int getCurrentGear() const noexcept override;   // Get current gear number
-    [[nodiscard]] float getRPM() const noexcept override;         // Get current engine RPM (for UI/audio)
-    [[nodiscard]] float getSteeringInput() const noexcept override; // Get current steering input (-1 to 1)
+    [[nodiscard]] float getDriftAngle() const noexcept override;
+    [[nodiscard]] int getCurrentGear() const noexcept override;
+    [[nodiscard]] float getRPM() const noexcept override;
+    [[nodiscard]] float getSteeringInput() const noexcept override;
 
-    // Setters for collision response
     void setVelocity(float velocity) noexcept;
 
-    // Runtime scale for vehicle size (used by renderer/collisions)
+    // Scaling affects both visuals and collision
     void setScale(float scale) noexcept;
     [[nodiscard]] float getScale() const noexcept override;
 
-    // Acceleration tuning (UI can call these)
+    // For UI tuning controls
     void setAccelerationMultiplier(float m) noexcept {
-        // Clamp to reasonable range (0.1x to 5x)
         accelMultiplier_ = std::clamp(m, 0.1f, 5.0f);
     }
     [[nodiscard]] float getAccelerationMultiplier() const noexcept { return accelMultiplier_; }
 
-    // Callback for resetting camera to orbit
     void setResetCameraCallback(std::function<void()> &&callback) noexcept;
 
 private:
-    // Calculate turn rate based on current speed
+    // Speed-dependent steering feel
     [[nodiscard]] float calculateTurnRate() const noexcept;
 
-    // Gear system methods
+    // Automatic transmission
     void updateGearShifting() noexcept;
     [[nodiscard]] float getGearAccelerationMultiplier() const noexcept;
 
-    // Update helper methods (extract from monolithic update())
+    // Update split into smaller pieces
     void updateNitrous(float deltaTime) noexcept;
     void updateVelocity(float deltaTime) noexcept;
     void updateRPM() noexcept;
@@ -75,29 +74,22 @@ private:
     void updatePosition(float deltaTime) noexcept;
     void decayAcceleration() noexcept;
 
-    float velocity_;                          // Current speed
-    float acceleration_;                      // Current acceleration
-    float steeringInput_;                     // Current steering input (-1 to 1)
+    float velocity_;
+    float acceleration_;
+    float steeringInput_;
 
-    // Drift state
-    bool isDrifting_;                         // Whether car is in drift mode
-    float driftAngle_;                        // Angle between facing direction and velocity direction
+    bool isDrifting_;
+    float driftAngle_;
 
-    // Nitrous state
-    bool hasNitrous_;                         // Whether player has a nitrous pickup
-    bool nitrousActive_;                      // Whether nitrous is currently active
-    float nitrousTimeRemaining_;              // Time left for nitrous boost
+    bool hasNitrous_;
+    bool nitrousActive_;
+    float nitrousTimeRemaining_;
 
-    // Gear system state
-    int currentGear_;                         // Current gear (0 = reverse, 1-4 = forward gears)
-    float rpm_;                               // Current engine RPM
+    int currentGear_;
+    float rpm_;
 
-    // Runtime scale
     float scale_ = 1.0f;
-
-    // External tuning controlled by UI (acceleration multiplier)
     float accelMultiplier_ = 1.0f;
 
-    // Callback
     std::function<void()> resetCameraCallback_;
 };
